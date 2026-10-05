@@ -1,4 +1,4 @@
-import EmailOutlined from "@mui/icons-material/EmailOutlined";
+import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import LockOutlined from "@mui/icons-material/LockOutlined";
 import VisibilityOutlined from "@mui/icons-material/VisibilityOutlined";
 import {
@@ -9,6 +9,9 @@ import {
   TextField,
 } from "@mui/material";
 import { useState } from "react";
+import { loginUser } from "../../services/authServices";
+import { getToken, setToken } from "../../utils/token";
+import { useNavigate } from "react-router-dom";
 
 const fieldSx = {
   "& .MuiOutlinedInput-root": {
@@ -25,22 +28,40 @@ const fieldSx = {
 };
 
 export const LoginMain = () => {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+
+  const handleSubmit = async () => {
+    try {
+      const res = await loginUser({ username, password });
+
+      const token = res.data.token;
+      setToken(token);
+
+      if (token) {
+        navigate("/");
+      }
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
 
   return (
     <Stack spacing={2.5}>
       <TextField
         fullWidth
-        type="email"
-        value={email}
-        onChange={(event) => setEmail(event.target.value)}
-        placeholder="Email Address"
+        type="username"
+        value={username}
+        onChange={(event) => setUsername(event.target.value)}
+        placeholder="Username"
         sx={fieldSx}
         slotProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <EmailOutlined sx={{ color: "text.disabled", fontSize: 30 }} />
+              <PersonOutlineOutlinedIcon
+                sx={{ color: "text.disabled", fontSize: 30 }}
+              />
             </InputAdornment>
           ),
         }}
@@ -89,7 +110,13 @@ export const LoginMain = () => {
         }}
       />
 
-      <Button type="submit" variant="contained" color="primary" fullWidth>
+      <Button
+        type="submit"
+        variant="contained"
+        color="primary"
+        fullWidth
+        onClick={handleSubmit}
+      >
         REGISTER
       </Button>
     </Stack>

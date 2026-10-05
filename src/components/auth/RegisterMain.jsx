@@ -12,6 +12,7 @@ import {
   Stack,
 } from "@mui/material";
 import { useState } from "react";
+import { registerUser } from "../../services/authServices";
 
 const fields = [
   {
@@ -38,10 +39,32 @@ const fields = [
 ];
 
 const RegisterMain = () => {
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (event) => {
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    console.log(formData);
+    const { username, password } = formData;
+    try {
+      const res = await registerUser({ username, password });
+      console.log(res);
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
@@ -64,6 +87,8 @@ const RegisterMain = () => {
               type={isPassword && showPassword ? "text" : field.type}
               placeholder={field.placeholder}
               fullWidth
+              value={formData[field.id]}
+              onChange={handleChange}
               startAdornment={
                 <InputAdornment position="start">
                   <Box
