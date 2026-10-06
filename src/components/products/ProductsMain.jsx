@@ -18,6 +18,7 @@ import { getProducts } from "../../services/products";
 import AppButtonIcon from "../../ui/AppButtonIcon";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import usePagination from "../../hooks/usePagination";
 
 const tableHeaders = [
   {
@@ -49,13 +50,18 @@ function ProductsMain() {
   const [total, setTotal] = useState(0);
 
   const navigate = useNavigate();
+  const { page, limit, skip, changePage, changeLimit } = usePagination();
 
   const search = searchParams.get("search") || "";
-  const page = Number(searchParams.get("page") || 1);
+  // const page = Number(searchParams.get("page") || 1);
   const rowsPerPage = Number(searchParams.get("limit") || 10);
   const [searchInput, setSearchInput] = useState(search);
 
   useEffect(() => {
+    if (searchInput.length < 3 && searchInput.length !== 0) {
+      return;
+    }
+    
     if (searchInput === search) {
       return;
     }
@@ -85,8 +91,8 @@ function ProductsMain() {
 
       const response = await getProducts({
         search,
-        limit: rowsPerPage,
-        skip: (page - 1) * rowsPerPage,
+        limit,
+        skip,
       });
 
       setProducts(response.data.products);
@@ -95,7 +101,7 @@ function ProductsMain() {
     };
 
     loadProducts();
-  }, [search, page, rowsPerPage]);
+  }, [search, limit, skip]);
 
   return (
     <Stack spacing={3}>
@@ -168,25 +174,10 @@ function ProductsMain() {
                     page={page - 1}
                     rowsPerPage={rowsPerPage}
                     onPageChange={(event, newPage) => {
-                      setSearchParams((prev) => {
-                        const next = new URLSearchParams(prev);
-
-                        next.set("page", String(newPage + 1));
-
-                        return next;
-                      });
+                      changePage(newPage + 1);
                     }}
                     onRowsPerPageChange={(event) => {
-                      const newLimit = Number(event.target.value);
-
-                      setSearchParams((prev) => {
-                        const next = new URLSearchParams(prev);
-
-                        next.set("limit", String(newLimit));
-                        next.set("page", "1");
-
-                        return next;
-                      });
+                      changeLimit(Number(event.target.value));
                     }}
                   />
                 </TableCell>

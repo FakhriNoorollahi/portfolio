@@ -20,8 +20,8 @@ function App() {
       <Routes>
         <Route element={<ProtectedRoute type="protected" />}>
           <Route path="/" element={<MainLayout />}>
-            <Route index element={<Navigate to="/about" replace />} />
-            <Route path="about" element={<HomePage />} />
+            <Route index element={<Navigate to="/home" replace />} />
+            <Route path="home" element={<HomePage />} />
             <Route path="resume" element={<ResumePage />} />
             <Route path="skills" element={<SkillsPage />} />
             <Route path="contact" element={<ConcatPage />} />

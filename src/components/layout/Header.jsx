@@ -11,7 +11,7 @@ const Nav_ITEMS = [
     id: 1,
     label: "Home",
     icon: <HomeOutlinedIcon />,
-    to: "/about",
+    to: "/home",
   },
   {
     id: 2,
