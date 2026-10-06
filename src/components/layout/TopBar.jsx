@@ -1,8 +1,12 @@
 import { Stack, Typography } from "@mui/material";
 import AppButtonIcon from "../../ui/AppButtonIcon";
-import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
+import HomeIcon from "@mui/icons-material/Home";
+import ProductionQuantityLimitsIcon from "@mui/icons-material/ProductionQuantityLimits";
+import { useNavigate } from "react-router-dom";
 
 function TopBar() {
+  const navigate = useNavigate();
+
   return (
     <Stack
       direction="row"
@@ -18,11 +22,20 @@ function TopBar() {
         </Typography>
       </Stack>
 
-      <AppButtonIcon
-        sx={{ border: "1px solid", borderColor: "border.default" }}
-      >
-        <LightModeOutlinedIcon />
-      </AppButtonIcon>
+      <Stack spacing={3} direction="row">
+        <AppButtonIcon
+          sx={{ border: "1px solid", borderColor: "border.default" }}
+          handler={() => navigate("/")}
+        >
+          <HomeIcon />
+        </AppButtonIcon>
+        <AppButtonIcon
+          sx={{ border: "1px solid", borderColor: "border.default" }}
+          handler={() => navigate("/products")}
+        >
+          <ProductionQuantityLimitsIcon />
+        </AppButtonIcon>
+      </Stack>
     </Stack>
   );
 }
