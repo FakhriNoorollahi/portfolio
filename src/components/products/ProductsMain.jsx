@@ -17,7 +17,7 @@ import { useEffect, useState } from "react";
 import { getProducts } from "../../services/products";
 import AppButtonIcon from "../../ui/AppButtonIcon";
 import SettingsIcon from "@mui/icons-material/Settings";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const tableHeaders = [
   {
@@ -43,21 +43,50 @@ const tableHeaders = [
 ];
 
 function ProductsMain() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [products, setProducts] = useState([]);
   const [total, setTotal] = useState(0);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+
   const navigate = useNavigate();
+
+  const search = searchParams.get("search") || "";
+  const page = Number(searchParams.get("page") || 1);
+  const rowsPerPage = Number(searchParams.get("limit") || 10);
+  const [searchInput, setSearchInput] = useState(search);
+
+  useEffect(() => {
+    if (searchInput === search) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+
+        if (searchInput) {
+          next.set("search", searchInput);
+        } else {
+          next.delete("search");
+        }
+
+        next.set("page", "1");
+
+        return next;
+      });
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchInput, search, setSearchParams]);
 
   useEffect(() => {
     const loadProducts = async () => {
+      setIsLoading(true);
+
       const response = await getProducts({
-        search: debouncedSearch,
+        search,
         limit: rowsPerPage,
-        skip: page * rowsPerPage,
+        skip: (page - 1) * rowsPerPage,
       });
 
       setProducts(response.data.products);
@@ -66,25 +95,15 @@ function ProductsMain() {
     };
 
     loadProducts();
-  }, [debouncedSearch, page, rowsPerPage]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(0);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [search]);
+  }, [search, page, rowsPerPage]);
 
   return (
     <Stack spacing={3}>
       <TextField
         label="Search"
-        value={search}
+        value={searchInput}
         onChange={(event) => {
-          setSearch(event.target.value);
-          setPage(0);
+          setSearchInput(event.target.value);
         }}
         sx={{
           marginBottom: "20px",
@@ -115,7 +134,7 @@ function ProductsMain() {
                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                   >
                     <TableCell component="th" scope="row">
-                      {index + 1}
+                      {(page - 1) * rowsPerPage + index + 1}
                     </TableCell>
                     <TableCell component="th" scope="row">
                       {p.title}
@@ -146,14 +165,28 @@ function ProductsMain() {
                   <TablePagination
                     component="div"
                     count={total}
-                    page={page}
-                    onPageChange={(event, newPage) => {
-                      setPage(newPage);
-                    }}
+                    page={page - 1}
                     rowsPerPage={rowsPerPage}
+                    onPageChange={(event, newPage) => {
+                      setSearchParams((prev) => {
+                        const next = new URLSearchParams(prev);
+
+                        next.set("page", String(newPage + 1));
+
+                        return next;
+                      });
+                    }}
                     onRowsPerPageChange={(event) => {
-                      setRowsPerPage(parseInt(event.target.value, 10));
-                      setPage(0);
+                      const newLimit = Number(event.target.value);
+
+                      setSearchParams((prev) => {
+                        const next = new URLSearchParams(prev);
+
+                        next.set("limit", String(newLimit));
+                        next.set("page", "1");
+
+                        return next;
+                      });
                     }}
                   />
                 </TableCell>
