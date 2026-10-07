@@ -1,4 +1,4 @@
-import LoginMain from "../components/auth/LoginMain";
+import LoginMain from "../features/auth/LoginMain";
 
 function LoginPage() {
   return <LoginMain />;

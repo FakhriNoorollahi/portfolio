@@ -12,7 +12,7 @@ import RegisterPage from "./pages/RegisterPage";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import ProductsPage from "./pages/ProductsPage";
 import ProductsLayout from "./layouts/ProductsLayout";
-import ProductDetail from "./components/products/ProductDetail";
+import ProductDetail from "./features/products/ProductDetail";
 import ProductsProvider from "./context/products/ProductsProvider";
 
 function App() {

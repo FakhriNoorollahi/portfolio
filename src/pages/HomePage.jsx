@@ -1,4 +1,4 @@
-import HomeMain from "../components/home/HomeMain";
+import HomeMain from "../features/home/HomeMain";
 
 function HomePage() {
   return <HomeMain />;

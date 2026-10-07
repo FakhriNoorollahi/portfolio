@@ -1,4 +1,4 @@
-import ResumeMain from "../components/resume/ResumeMain";
+import ResumeMain from "../features/resume/ResumeMain";
 
 function ResumePage() {
   return <ResumeMain />;

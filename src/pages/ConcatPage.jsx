@@ -1,4 +1,4 @@
-import ConcatMain from "../components/concat/ConcatMain";
+import ConcatMain from "../features/concat/ConcatMain";
 
 function ConcatPage() {
   return <ConcatMain />;

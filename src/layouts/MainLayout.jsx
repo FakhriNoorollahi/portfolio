@@ -1,7 +1,7 @@
 import { Box, Grid, Paper } from "@mui/material";
-import TopBar from "../components/layout/TopBar";
-import SideBar from "../components/layout/SideBar";
-import Header from "../components/layout/Header";
+import TopBar from "../features/layout/TopBar";
+import SideBar from "../features/layout/SideBar";
+import Header from "../features/layout/Header";
 import { Outlet } from "react-router-dom";
 
 function MainLayout() {

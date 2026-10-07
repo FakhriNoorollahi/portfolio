@@ -1,4 +1,4 @@
-import ProductsMain from "../components/products/ProductsMain";
+import ProductsMain from "../features/products/ProductsMain";
 
 function ProductsPage() {
   return <ProductsMain />;

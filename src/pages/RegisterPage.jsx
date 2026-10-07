@@ -1,4 +1,4 @@
-import RegisterMain from "../components/auth/RegisterMain";
+import RegisterMain from "../features/auth/RegisterMain";
 
 function RegisterPage() {
   return <RegisterMain />;

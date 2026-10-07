@@ -1,4 +1,4 @@
-import SkillsMain from "../components/skills/SkillsMAin";
+import SkillsMain from "../features/skills/SkillsMAin";
 
 function SkillsPage() {
   return <SkillsMain />;
