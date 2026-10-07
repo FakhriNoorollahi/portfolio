@@ -9,8 +9,16 @@ export async function getProducts({
   select,
   sortBy,
   order,
+  category,
 } = {}) {
-  const endpoint = search ? "products/search" : "products";
+  // const endpoint = search ? "products/search" : "products";
+  let endpoint = "products";
+
+  if (category) {
+    endpoint = `products/category/${category}`;
+  } else if (search) {
+    endpoint = "products/search";
+  }
 
   const params = {
     limit,
