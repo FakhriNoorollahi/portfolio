@@ -4,13 +4,23 @@ import { getProducts } from "../../services/products";
 import { useSearchParams } from "react-router-dom";
 import usePagination from "../../hooks/usePagination";
 import { getCategories } from "../../services/categories";
+import {
+  getDataLocalStorage,
+  saveDataLocalStorage,
+} from "../../hooks/useLocalStorage";
+import {
+  CATEGORIES,
+  PRODUCTS,
+} from "../../features/products/constants/productConst";
 
 function ProductsProvider({ children }) {
-  const [categories, setCategories] = useState([]);
-  const [isLoadingCategory, setIsLoadingCategory] = useState(true);
+  const [categories, setCategories] = useState(
+    getDataLocalStorage(CATEGORIES) || [],
+  );
+  const [isLoadingCategory, setIsLoadingCategory] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [isLoading, setIsLoading] = useState(true);
-  const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [products, setProducts] = useState(getDataLocalStorage(PRODUCTS) || []);
   const [total, setTotal] = useState(0);
 
   const { page, limit, skip, changePage, changeLimit } = usePagination();
@@ -35,7 +45,6 @@ function ProductsProvider({ children }) {
 
         if (searchInput) {
           next.set("search", searchInput);
-          next.delete("category");
         } else {
           next.delete("search");
         }
@@ -50,16 +59,21 @@ function ProductsProvider({ children }) {
   }, [searchInput, search, setSearchParams]);
 
   useEffect(() => {
+    const localProducts = getDataLocalStorage(PRODUCTS);
+
+    if (localProducts.length > 0) {
+      return;
+    }
+
     const loadProducts = async () => {
       setIsLoading(true);
 
       const response = await getProducts({
-        search,
-        limit,
+        limit: 0,
         skip,
-        category,
       });
 
+      saveDataLocalStorage(PRODUCTS, response.data.products);
       setProducts(response.data.products);
       setTotal(response.data.total);
       setIsLoading(false);
@@ -69,11 +83,18 @@ function ProductsProvider({ children }) {
   }, [search, limit, skip, category]);
 
   useEffect(() => {
+    const localCategories = getDataLocalStorage(CATEGORIES);
+
+    if (localCategories.length > 0) {
+      return;
+    }
+
     async function getAllCategories() {
+      setIsLoadingCategory(true);
       try {
         const { data } = await getCategories();
         setCategories(data);
-
+        saveDataLocalStorage(CATEGORIES, data);
         setIsLoadingCategory(false);
       } catch (error) {
         console.log(error);
@@ -86,6 +107,7 @@ function ProductsProvider({ children }) {
   return (
     <ProductsContext.Provider
       value={{
+        search,
         categories,
         isLoadingCategory,
         searchInput,

@@ -18,6 +18,7 @@ import AppButtonIcon from "../../ui/AppButtonIcon";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { useNavigate } from "react-router-dom";
 import { useProducts } from "../../context/products/useProducts";
+import usePagination from "../../hooks/usePagination";
 
 const tableHeaders = [
   {
@@ -52,9 +53,26 @@ function ProductsTable() {
     page,
     rowsPerPage,
     changePage,
-    total,
     changeLimit,
+    category,
+    search,
   } = useProducts();
+  const { skip, limit } = usePagination();
+  let filteredProducts = products;
+
+  if (category) {
+    filteredProducts = products.filter((item) => item.category === category);
+  }
+
+  if (searchInput) {
+    filteredProducts = filteredProducts.filter((item) =>
+      item.description.toLowerCase().includes(search.trim().toLowerCase()),
+    );
+  }
+
+  const visibleProducts = filteredProducts.slice(skip, skip + limit);
+
+  const total = filteredProducts.length;
 
   return (
     <Stack spacing={3}>
@@ -87,7 +105,7 @@ function ProductsTable() {
             </TableHead>
             <TableBody>
               {products.length ? (
-                products.map((p, index) => (
+                visibleProducts.map((p, index) => (
                   <TableRow
                     key={p.title}
                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
