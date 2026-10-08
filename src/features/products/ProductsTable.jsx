@@ -23,7 +23,6 @@ import AppButton from "../../ui/AppButton";
 import AddIcon from "@mui/icons-material/Add";
 import { useState } from "react";
 import AddCategoryModal from "./AddCategoryModal";
-import AppDialog from "../../ui/AppDialog";
 
 const tableHeaders = [
   {
@@ -99,16 +98,7 @@ function ProductsTable() {
         <AppButton startIcon={<AddIcon />} handler={() => setOpen(true)}>
           Add Category
         </AppButton>
-        {open && (
-          <AppDialog
-            open={open}
-            handleClose={() => setOpen(false)}
-            confirmText="Add"
-            title="Add New Category"
-          >
-            <AddCategoryModal />
-          </AppDialog>
-        )}
+        {open && <AddCategoryModal setOpen={setOpen} />}
       </Stack>
       {isLoading ? (
         <CircularProgress aria-label="Loading…" />
