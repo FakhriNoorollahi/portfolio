@@ -104,7 +104,7 @@ function ProductsTable() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {products.length ? (
+              {visibleProducts.length ? (
                 visibleProducts.map((p, index) => (
                   <TableRow
                     key={p.title}

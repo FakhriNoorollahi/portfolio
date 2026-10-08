@@ -20,7 +20,7 @@ function ProductsCategories() {
           }}
         >
           {categories?.map((c) => (
-            <TreeItem key={c.slug} itemId={c.slug} label={c.name} />
+            <TreeItem key={c.id} itemId={c.id} label={c.name} />
           ))}
         </SimpleTreeView>
       )}

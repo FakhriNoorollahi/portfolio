@@ -93,8 +93,17 @@ function ProductsProvider({ children }) {
       setIsLoadingCategory(true);
       try {
         const { data } = await getCategories();
-        setCategories(data);
-        saveDataLocalStorage(CATEGORIES, data);
+        const filtredCategories = data.map((item) => {
+          return {
+            id: new Date().getTime() * Math.random(),
+            name: item.name,
+            parentId: null,
+          };
+        });
+        console.log(filtredCategories);
+
+        setCategories(filtredCategories);
+        saveDataLocalStorage(CATEGORIES, filtredCategories);
         setIsLoadingCategory(false);
       } catch (error) {
         console.log(error);
