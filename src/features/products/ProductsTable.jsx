@@ -60,14 +60,16 @@ function ProductsTable() {
     rowsPerPage,
     changePage,
     changeLimit,
-    category,
+    selectedCategory,
     search,
   } = useProducts();
   const { skip, limit } = usePagination();
   let filteredProducts = products;
 
-  if (category) {
-    filteredProducts = products.filter((item) => item.category === category);
+  if (selectedCategory) {
+    filteredProducts = products.filter(
+      (item) => item.category === selectedCategory,
+    );
   }
 
   if (searchInput) {
@@ -102,7 +104,7 @@ function ProductsTable() {
       </Stack>
       {isLoading ? (
         <CircularProgress aria-label="Loading…" />
-      ) : (
+      ) : visibleProducts.length > 0 ? (
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }} aria-label="simple table">
             <TableHead>
@@ -115,37 +117,31 @@ function ProductsTable() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {visibleProducts.length ? (
-                visibleProducts.map((p, index) => (
-                  <TableRow
-                    key={p.title}
-                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                  >
-                    <TableCell component="th" scope="row">
-                      {(page - 1) * rowsPerPage + index + 1}
-                    </TableCell>
-                    <TableCell component="th" scope="row">
-                      {p.title}
-                    </TableCell>
-                    <TableCell align="right">{p.category}</TableCell>
-                    <TableCell align="right">{p.price}</TableCell>
-                    <TableCell align="right">
-                      {p.minimumOrderQuantity}
-                    </TableCell>
-                    <TableCell align="right">{p.description}</TableCell>
-                    <TableCell>
-                      <AppButtonIcon
-                        color="secondary"
-                        handler={() => navigate(`/products/${p.id}`)}
-                      >
-                        <SettingsIcon sx={{ color: "primary.main" }} />
-                      </AppButtonIcon>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <Typography>There is no Products</Typography>
-              )}
+              {visibleProducts.map((p, index) => (
+                <TableRow
+                  key={p.title}
+                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                >
+                  <TableCell component="th" scope="row">
+                    {(page - 1) * rowsPerPage + index + 1}
+                  </TableCell>
+                  <TableCell component="th" scope="row">
+                    {p.title}
+                  </TableCell>
+                  <TableCell align="right">{p.category}</TableCell>
+                  <TableCell align="right">{p.price}</TableCell>
+                  <TableCell align="right">{p.minimumOrderQuantity}</TableCell>
+                  <TableCell align="right">{p.description}</TableCell>
+                  <TableCell>
+                    <AppButtonIcon
+                      color="secondary"
+                      handler={() => navigate(`/products/${p.id}`)}
+                    >
+                      <SettingsIcon sx={{ color: "primary.main" }} />
+                    </AppButtonIcon>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
             <TableFooter>
               <TableRow>
@@ -167,6 +163,8 @@ function ProductsTable() {
             </TableFooter>
           </Table>
         </TableContainer>
+      ) : (
+        <Typography variant="p">There is no Products</Typography>
       )}
     </Stack>
   );

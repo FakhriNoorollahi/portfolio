@@ -22,8 +22,9 @@ function ProductsProvider({ children }) {
   const [isLoading, setIsLoading] = useState(false);
   const [products, setProducts] = useState(getDataLocalStorage(PRODUCTS) || []);
   const [total, setTotal] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState("");
 
-  const { page, limit, skip, changePage, changeLimit } = usePagination();
+  const { page, changePage, changeLimit } = usePagination();
 
   const category = searchParams.get("category") || "";
   const search = searchParams.get("search") || "";
@@ -70,7 +71,7 @@ function ProductsProvider({ children }) {
 
       const response = await getProducts({
         limit: 0,
-        skip,
+        skip: 10,
       });
 
       saveDataLocalStorage(PRODUCTS, response.data.products);
@@ -80,7 +81,7 @@ function ProductsProvider({ children }) {
     };
 
     loadProducts();
-  }, [search, limit, skip, category]);
+  }, []);
 
   useEffect(() => {
     const localCategories = getDataLocalStorage(CATEGORIES);
@@ -95,12 +96,11 @@ function ProductsProvider({ children }) {
         const { data } = await getCategories();
         const filtredCategories = data.map((item) => {
           return {
-            id: new Date().getTime() * Math.random(),
+            id: item.slug,
             name: item.name,
             parentId: null,
           };
         });
-        console.log(filtredCategories);
 
         setCategories(filtredCategories);
         saveDataLocalStorage(CATEGORIES, filtredCategories);
@@ -121,6 +121,8 @@ function ProductsProvider({ children }) {
         isLoadingCategory,
         searchInput,
         setSearchInput,
+        selectedCategory,
+        setSelectedCategory,
         isLoading,
         products,
         page,

@@ -3,8 +3,13 @@ import { SimpleTreeView, TreeItem } from "@mui/x-tree-view";
 import { useProducts } from "../../context/products/useProducts";
 
 function ProductsCategories() {
-  const { categories, isLoadingCategory, category, setSearchParams } =
-    useProducts();
+  const {
+    categories,
+    isLoadingCategory,
+    category,
+    setSearchParams,
+    setSelectedCategory,
+  } = useProducts();
 
   const renderCategories = (id) => {
     const childrenCategories = categories.filter((c) => c.parentId === id);
@@ -28,6 +33,7 @@ function ProductsCategories() {
         <SimpleTreeView
           selectedItems={category?.toString()}
           onSelectedItemsChange={(event, itemId) => {
+            setSelectedCategory(itemId);
             setSearchParams({
               category: itemId,
               page: "1",
