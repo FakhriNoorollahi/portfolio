@@ -6,6 +6,7 @@ function AppButton({
   startIcon,
   children,
   href,
+  handler,
   sx,
 }) {
   const isLink = type === "link";
@@ -22,6 +23,7 @@ function AppButton({
         borderRadius: "30px",
         ...sx,
       }}
+      onClick={handler}
     >
       {children}
     </Button>

@@ -19,6 +19,11 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import { useNavigate } from "react-router-dom";
 import { useProducts } from "../../context/products/useProducts";
 import usePagination from "../../hooks/usePagination";
+import AppButton from "../../ui/AppButton";
+import AddIcon from "@mui/icons-material/Add";
+import { useState } from "react";
+import AddCategoryModal from "./AddCategoryModal";
+import AppDialog from "../../ui/AppDialog";
 
 const tableHeaders = [
   {
@@ -44,6 +49,8 @@ const tableHeaders = [
 ];
 
 function ProductsTable() {
+  const [open, setOpen] = useState(false);
+
   const navigate = useNavigate();
   const {
     searchInput,
@@ -76,19 +83,33 @@ function ProductsTable() {
 
   return (
     <Stack spacing={3}>
-      <TextField
-        label="Search"
-        value={searchInput}
-        onChange={(event) => {
-          setSearchInput(event.target.value);
-        }}
-        sx={{
-          marginBottom: "20px",
-          backgroundColor: "#fff",
-          border: "none",
-          width: "50%",
-        }}
-      />
+      <Stack direction="row" spacing={2} sx={{ marginBottom: "20px" }}>
+        <TextField
+          label="Search"
+          value={searchInput}
+          onChange={(event) => {
+            setSearchInput(event.target.value);
+          }}
+          sx={{
+            backgroundColor: "#fff",
+            border: "none",
+            width: "50%",
+          }}
+        />
+        <AppButton startIcon={<AddIcon />} handler={() => setOpen(true)}>
+          Add Category
+        </AppButton>
+        {open && (
+          <AppDialog
+            open={open}
+            handleClose={() => setOpen(false)}
+            confirmText="Add"
+            title="Add New Category"
+          >
+            <AddCategoryModal />
+          </AppDialog>
+        )}
+      </Stack>
       {isLoading ? (
         <CircularProgress aria-label="Loading…" />
       ) : (
