@@ -10,7 +10,7 @@ function AddCategoryModal({ setOpen }) {
   const [categoryName, setCategoryName] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
 
-  const { categories } = useProducts();
+  const { categories, setCategories } = useProducts();
   const newCategories = categories.map((item) => {
     return {
       label: item.name,
@@ -30,6 +30,7 @@ function AddCategoryModal({ setOpen }) {
     ];
 
     saveDataLocalStorage(CATEGORIES, newCategories);
+    setCategories(newCategories);
     setOpen(false);
   };
 

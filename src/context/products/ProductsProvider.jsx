@@ -130,6 +130,7 @@ function ProductsProvider({ children }) {
         changeLimit,
         setSearchParams,
         category,
+        setCategories,
       }}
     >
       {children}

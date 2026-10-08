@@ -5,6 +5,21 @@ import { useProducts } from "../../context/products/useProducts";
 function ProductsCategories() {
   const { categories, isLoadingCategory, category, setSearchParams } =
     useProducts();
+
+  const renderCategories = (id) => {
+    const childrenCategories = categories.filter((c) => c.parentId === id);
+
+    return (
+      <>
+        {childrenCategories.map((c) => (
+          <TreeItem key={c.id} itemId={c.id} label={c.name}>
+            {renderCategories(c.id)}
+          </TreeItem>
+        ))}
+      </>
+    );
+  };
+
   return (
     <Box sx={{ minHeight: 352, minWidth: 250 }}>
       {isLoadingCategory ? (
@@ -19,9 +34,17 @@ function ProductsCategories() {
             });
           }}
         >
-          {categories?.map((c) => (
-            <TreeItem key={c.id} itemId={c.id} label={c.name} />
-          ))}
+          {categories
+            .filter((c) => c.parentId === null)
+            .map((pCategory) => (
+              <TreeItem
+                key={pCategory.id}
+                itemId={pCategory.id}
+                label={pCategory.name}
+              >
+                {renderCategories(pCategory.id)}
+              </TreeItem>
+            ))}
         </SimpleTreeView>
       )}
     </Box>
