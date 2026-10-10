@@ -3,6 +3,9 @@ import { useState } from "react";
 import Draggable from "./Draggable";
 import Droppable from "./Droppable";
 import Grid from "@mui/material/Grid";
+import StackElement from "./stackElement";
+import TypographyElement from "./TypographyElement.jsx";
+import ImageElement from "./ImageElement.jsx";
 
 function PageDesigner() {
   const [elements, setElements] = useState([]);
@@ -45,7 +48,22 @@ function PageDesigner() {
         <Grid size={10}>
           <Droppable id="droppable">
             {elements.map((element) => (
-              <div key={element.id}>{element.type}</div>
+              <div key={element.id} style={{ marginBottom: "16px" }}>
+                {element.type === "stack" && <StackElement />}
+
+                {element.type === "typography" && (
+                  <TypographyElement
+                    text={element.props?.text || "New heading"}
+                  />
+                )}
+
+                {element.type === "image" && (
+                  <ImageElement
+                    src={element.props?.src || ""}
+                    alt={element.props?.alt || "Image"}
+                  />
+                )}
+              </div>
             ))}
           </Droppable>
         </Grid>
