@@ -38,7 +38,7 @@ function AddCategoryModal({ setOpen }) {
       handleConfirm={onHandleConfirm}
     >
       <Box sx={{ marginBottom: "20px" }}>
-        <AppBreadcrumbs items={breadcrumbItems.map((item) => item.name)} />
+        <AppBreadcrumbs items={breadcrumbItems} />
       </Box>
       <Stack spacing={2}>
         <TextField

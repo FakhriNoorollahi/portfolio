@@ -4,7 +4,7 @@ function AppBreadcrumbs({ items }) {
   return (
     <Breadcrumbs aria-label="breadcrumb">
       {items.map((item) => (
-        <Typography sx={{ color: "text.primary" }}>{item}</Typography>
+        <Typography sx={{ color: "text.primary" }}>{item.name}</Typography>
       ))}
     </Breadcrumbs>
   );
