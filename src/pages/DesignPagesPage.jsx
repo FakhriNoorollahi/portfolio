@@ -1,5 +1,7 @@
+import PageDesigner from "../features/design-pages/components/PageDesigner";
+
 function DesignPagesPage() {
-  return <div>DesignPagesPage</div>;
+  return <PageDesigner />;
 }
 
 export default DesignPagesPage;

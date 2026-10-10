@@ -54,7 +54,7 @@ function App() {
               </Route>
             </Route>
             <Route element={<ProtectedRoute type="protected" />}>
-              <Route path="/design-page" element={<ProductsLayout />}>
+              <Route path="/designer-page" element={<ProductsLayout />}>
                 <Route index element={<DesignPagesPage />} />
               </Route>
             </Route>
