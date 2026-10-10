@@ -14,37 +14,59 @@ import ProductsPage from "./pages/ProductsPage";
 import ProductsLayout from "./layouts/ProductsLayout";
 import ProductDetail from "./features/products/ProductDetail";
 import ProductsProvider from "./context/products/ProductsProvider";
+import ProductEdit from "./features/products/ProductEdit";
+import ManagmentMenuPage from "./pages/ManagmentMenuPage";
+import PagesListPage from "./pages/PagesListPage";
+import DesignPagesPage from "./pages/DesignPagesPage";
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <ProductsProvider>
-        <Routes>
-          <Route element={<ProtectedRoute type="protected" />}>
-            <Route path="/" element={<MainLayout />}>
-              <Route index element={<Navigate to="/home" replace />} />
-              <Route path="home" element={<HomePage />} />
-              <Route path="resume" element={<ResumePage />} />
-              <Route path="skills" element={<SkillsPage />} />
-              <Route path="contact" element={<ConcatPage />} />
+    <div dir="rtl">
+      <ThemeProvider theme={theme}>
+        <ProductsProvider>
+          <Routes>
+            <Route element={<ProtectedRoute type="protected" />}>
+              <Route path="/" element={<MainLayout />}>
+                <Route index element={<Navigate to="/home" replace />} />
+                <Route path="home" element={<HomePage />} />
+                <Route path="resume" element={<ResumePage />} />
+                <Route path="skills" element={<SkillsPage />} />
+                <Route path="contact" element={<ConcatPage />} />
+              </Route>
             </Route>
-          </Route>
-          <Route element={<ProtectedRoute type="public" />}>
-            <Route path="/auth" element={<AuthLayout />}>
-              <Route index element={<Navigate to="login" replace />} />
-              <Route path="login" element={<LoginPage />} />
-              <Route path="register" element={<RegisterPage />} />
+            <Route element={<ProtectedRoute type="public" />}>
+              <Route path="/auth" element={<AuthLayout />}>
+                <Route index element={<Navigate to="login" replace />} />
+                <Route path="login" element={<LoginPage />} />
+                <Route path="register" element={<RegisterPage />} />
+              </Route>
             </Route>
-          </Route>
-          <Route element={<ProtectedRoute type="protected" />}>
-            <Route path="/products" element={<ProductsLayout />}>
-              <Route index element={<ProductsPage />} />
-              <Route path=":id" element={<ProductDetail />} />
+            <Route element={<ProtectedRoute type="protected" />}>
+              <Route path="/products" element={<ProductsLayout />}>
+                <Route index element={<ProductsPage />} />
+                <Route path=":id" element={<ProductDetail />} />
+                <Route path="edit/:id" element={<ProductEdit />} />
+              </Route>
             </Route>
-          </Route>
-        </Routes>
-      </ProductsProvider>
-    </ThemeProvider>
+            <Route element={<ProtectedRoute type="protected" />}>
+              <Route path="/pages-list" element={<ProductsLayout />}>
+                <Route index element={<PagesListPage />} />
+              </Route>
+            </Route>
+            <Route element={<ProtectedRoute type="protected" />}>
+              <Route path="/design-page" element={<ProductsLayout />}>
+                <Route index element={<DesignPagesPage />} />
+              </Route>
+            </Route>
+            <Route element={<ProtectedRoute type="protected" />}>
+              <Route path="/managment-menu" element={<ProductsLayout />}>
+                <Route index element={<ManagmentMenuPage />} />
+              </Route>
+            </Route>
+          </Routes>
+        </ProductsProvider>
+      </ThemeProvider>
+    </div>
   );
 }
 

@@ -8,6 +8,7 @@ const theme = createTheme({
   palette,
   typography,
   shape,
+  direction: "rtl",
 });
 
 export default theme;

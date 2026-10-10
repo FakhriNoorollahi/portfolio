@@ -1,8 +1,29 @@
 import { Stack, Typography } from "@mui/material";
-import AppButtonIcon from "../../ui/AppButtonIcon";
-import HomeIcon from "@mui/icons-material/Home";
-import ProductionQuantityLimitsIcon from "@mui/icons-material/ProductionQuantityLimits";
 import { useNavigate } from "react-router-dom";
+import AppButton from "../../ui/AppButton";
+
+const NAV_ITEMS = [
+  {
+    id: 1,
+    label: "خانه",
+    link: "/",
+  },
+  {
+    id: 2,
+    label: "محصولات",
+    link: "/products",
+  },
+  {
+    id: 3,
+    label: "طراحی صفحه",
+    link: "/pages-list",
+  },
+  {
+    id: 4,
+    label: "مدیریت منوها",
+    link: "/managment-menu",
+  },
+];
 
 function TopBar() {
   const navigate = useNavigate();
@@ -15,26 +36,18 @@ function TopBar() {
         alignItems: "center",
       }}
     >
+      <Stack spacing={3} direction="row">
+        {NAV_ITEMS.map((p) => (
+          <AppButton key={p.id} handler={() => navigate(p.link)}>
+            {p.label}
+          </AppButton>
+        ))}
+      </Stack>
       <Stack direction="row" spacing={1}>
         <Typography variant="h6">My</Typography>
         <Typography variant="h6" color="primary">
           Portfolio
         </Typography>
-      </Stack>
-
-      <Stack spacing={3} direction="row">
-        <AppButtonIcon
-          sx={{ border: "1px solid", borderColor: "border.default" }}
-          handler={() => navigate("/")}
-        >
-          <HomeIcon />
-        </AppButtonIcon>
-        <AppButtonIcon
-          sx={{ border: "1px solid", borderColor: "border.default" }}
-          handler={() => navigate("/products")}
-        >
-          <ProductionQuantityLimitsIcon />
-        </AppButtonIcon>
       </Stack>
     </Stack>
   );

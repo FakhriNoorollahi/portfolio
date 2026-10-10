@@ -14,6 +14,7 @@ import {
   Typography,
 } from "@mui/material";
 
+import EditIcon from "@mui/icons-material/Edit";
 import AppButtonIcon from "../../ui/AppButtonIcon";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { useNavigate } from "react-router-dom";
@@ -113,6 +114,7 @@ function ProductsTable() {
                 {tableHeaders.map((p) => (
                   <TableCell key={p.id}>{p.label}</TableCell>
                 ))}
+                <TableCell>edit</TableCell>
                 <TableCell>details</TableCell>
               </TableRow>
             </TableHead>
@@ -132,6 +134,14 @@ function ProductsTable() {
                   <TableCell align="right">{p.price}</TableCell>
                   <TableCell align="right">{p.minimumOrderQuantity}</TableCell>
                   <TableCell align="right">{p.description}</TableCell>
+                  <TableCell>
+                    <AppButtonIcon
+                      color="secondary"
+                      handler={() => navigate(`/products/edit/${p.id}`)}
+                    >
+                      <EditIcon sx={{ color: "primary.main" }} />
+                    </AppButtonIcon>
+                  </TableCell>
                   <TableCell>
                     <AppButtonIcon
                       color="secondary"

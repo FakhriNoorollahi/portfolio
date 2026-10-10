@@ -32,10 +32,10 @@ function AppDialog({
       <DialogTitle id="alert-dialog-title">{title}</DialogTitle>
       <DialogContent>{children}</DialogContent>
       <DialogActions>
-        <AppButton handler={handleClose} autoFocus>
-          Cancel
-        </AppButton>
         <AppButton handler={handleConfirm}>{confirmText}</AppButton>
+        <AppButton handler={handleClose} autoFocus>
+          انصراف
+        </AppButton>
       </DialogActions>
     </Dialog>
   );
