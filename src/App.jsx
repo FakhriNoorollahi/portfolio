@@ -18,6 +18,7 @@ import ProductEdit from "./features/products/ProductEdit";
 import ManagmentMenuPage from "./pages/ManagmentMenuPage";
 import PagesListPage from "./pages/PagesListPage";
 import DesignPagesPage from "./pages/DesignPagesPage";
+import NewComponentsPage from "./pages/NewComponentsPage";
 
 function App() {
   return (
@@ -61,6 +62,11 @@ function App() {
             <Route element={<ProtectedRoute type="protected" />}>
               <Route path="/managment-menu" element={<ProductsLayout />}>
                 <Route index element={<ManagmentMenuPage />} />
+              </Route>
+            </Route>
+            <Route element={<ProtectedRoute type="protected" />}>
+              <Route path="/components" element={<ProductsLayout />}>
+                <Route path=":id" element={<NewComponentsPage />} />
               </Route>
             </Route>
           </Routes>

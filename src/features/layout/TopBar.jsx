@@ -1,6 +1,8 @@
 import { Stack, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import AppButton from "../../ui/AppButton";
+import { getDataLocalStorage } from "../../hooks/useLocalStorage";
+import { WEB_PAGES } from "../page-lists/constants/pages-list-const";
 
 const NAV_ITEMS = [
   {
@@ -27,6 +29,15 @@ const NAV_ITEMS = [
 
 function TopBar() {
   const navigate = useNavigate();
+  const newMenues = getDataLocalStorage(WEB_PAGES) || [];
+
+  const updatedNavItems = newMenues.map((item) => ({
+    id: item.id,
+    label: item.title,
+    link: `/components/${item.title}`,
+  }));
+
+  const newM = [...NAV_ITEMS, ...updatedNavItems];
 
   return (
     <Stack
@@ -37,7 +48,7 @@ function TopBar() {
       }}
     >
       <Stack spacing={3} direction="row">
-        {NAV_ITEMS.map((p) => (
+        {newM.map((p) => (
           <AppButton key={p.id} handler={() => navigate(p.link)}>
             {p.label}
           </AppButton>
