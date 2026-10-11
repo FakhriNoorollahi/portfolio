@@ -50,7 +50,9 @@ function PagesListMain() {
               sx={{ marginBottom: "10px" }}
               key={item.id}
               secondaryAction={
-                <AppButton handler={() => navigate("/designer-page")}>
+                <AppButton
+                  handler={() => navigate(`/designer-page/${item.id}`)}
+                >
                   طراحی
                 </AppButton>
               }

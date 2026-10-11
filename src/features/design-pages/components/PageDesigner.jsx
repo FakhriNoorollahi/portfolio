@@ -11,12 +11,40 @@ import { Box, Button, TextField, Typography } from "@mui/material";
 import findElement from "../utils/finElement.js";
 import updateElement from "../utils/updateElement.js";
 import deleteElement from "../utils/deleteElements.js";
+import { useParams } from "react-router-dom";
+import {
+  getDataLocalStorage,
+  saveDataLocalStorage,
+} from "../../../hooks/useLocalStorage.js";
+
+const PAGE_DESIGNS = "page_designs";
 
 function PageDesigner() {
-  const [elements, setElements] = useState([]);
+  const { id: pageId } = useParams();
+  console.log(pageId);
+
+  const [elements, setElements] = useState(() => {
+    const savedDesigns = getDataLocalStorage(PAGE_DESIGNS) || {};
+    return savedDesigns[pageId] || [];
+  });
   const [selectedElementId, setSelectedElementId] = useState(null);
 
   const selectedElement = findElement(elements, selectedElementId);
+
+  function handleSaveDesign() {
+    if (!pageId) return;
+
+    const savedDesigns = getDataLocalStorage(PAGE_DESIGNS) || {};
+
+    const updatedDesigns = {
+      ...savedDesigns,
+      [pageId]: elements,
+    };
+
+    saveDataLocalStorage(PAGE_DESIGNS, updatedDesigns);
+
+    alert("طراحی صفحه ذخیره شد.");
+  }
 
   function handlePropChange(propName, value) {
     setElements((current) =>
@@ -133,65 +161,76 @@ function PageDesigner() {
   }
 
   return (
-    <Grid container spacing={3} sx={{ height: "70vh", marginTop: "20px" }}>
-      <DragDropProvider onDragEnd={handleDragEnd}>
-        <Grid size={2}>
-          <Draggable />
-        </Grid>
+    <Box>
+      <Button
+        sx={{ marginY: "20px" }}
+        variant="contained"
+        onClick={handleSaveDesign}
+      >
+        ذخیره طراحی
+      </Button>
+      <Grid container spacing={3} sx={{ height: "70vh", marginTop: "20px" }}>
+        <DragDropProvider onDragEnd={handleDragEnd}>
+          <Grid size={2}>
+            <Draggable />
+          </Grid>
 
-        <Grid size={7}>
-          <Droppable id="canvas">
-            {elements.map((element) => renderElement(element))}
-          </Droppable>
-        </Grid>
-        <Grid size={3}>
-          {selectedElement?.type === "typography" && (
-            <TextField
-              label="متن"
-              value={selectedElement.props?.text ?? ""}
-              onChange={(event) => handlePropChange("text", event.target.value)}
-              fullWidth
-              multiline
-              minRows={3}
-            />
-          )}
+          <Grid size={7}>
+            <Droppable id="canvas">
+              {elements.map((element) => renderElement(element))}
+            </Droppable>
+          </Grid>
+          <Grid size={3}>
+            {selectedElement?.type === "typography" && (
+              <TextField
+                label="متن"
+                value={selectedElement.props?.text ?? ""}
+                onChange={(event) =>
+                  handlePropChange("text", event.target.value)
+                }
+                fullWidth
+                multiline
+                minRows={3}
+              />
+            )}
 
-          {selectedElement?.type === "image" && (
-            <Box sx={{ p: 2 }}>
-              <Typography variant="h6" sx={{ mb: 2 }}>
-                انتخاب تصویر
-              </Typography>
+            {selectedElement?.type === "image" && (
+              <Box sx={{ p: 2 }}>
+                <Typography variant="h6" sx={{ mb: 2 }}>
+                  انتخاب تصویر
+                </Typography>
 
-              <Button variant="contained" component="label" fullWidth>
-                +
-                <input
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    handleImageChange(file);
-                    event.target.value = "";
-                  }}
-                />
+                <Button variant="contained" component="label" fullWidth>
+                  +
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      handleImageChange(file);
+                      event.target.value = "";
+                    }}
+                  />
+                </Button>
+              </Box>
+            )}
+
+            {selectedElement && (
+              <Button
+                variant="outlined"
+                color="error"
+                fullWidth
+                sx={{ mt: 2 }}
+                onClick={handleDeleteElement}
+              >
+                حذف عنصر انتخاب‌شده
               </Button>
-            </Box>
-          )}
-
-          {selectedElement && (
-            <Button
-              variant="outlined"
-              color="error"
-              fullWidth
-              sx={{ mt: 2 }}
-              onClick={handleDeleteElement}
-            >
-              حذف عنصر انتخاب‌شده
-            </Button>
-          )}
-        </Grid>
-      </DragDropProvider>
-    </Grid>
+            )}
+          </Grid>
+        </DragDropProvider>
+      </Grid>
+    </Box>
   );
 }
 
