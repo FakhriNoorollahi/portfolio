@@ -10,6 +10,7 @@ import addChildToStack from "../utils/addChildToStack.js";
 import { Box, Button, TextField, Typography } from "@mui/material";
 import findElement from "../utils/finElement.js";
 import updateElement from "../utils/updateElement.js";
+import deleteElement from "../utils/deleteElements.js";
 
 function PageDesigner() {
   const [elements, setElements] = useState([]);
@@ -21,6 +22,14 @@ function PageDesigner() {
     setElements((current) =>
       updateElement(current, selectedElementId, propName, value),
     );
+  }
+
+  function handleDeleteElement() {
+    if (selectedElementId === null) return;
+
+    setElements((current) => deleteElement(current, selectedElementId));
+
+    setSelectedElementId(null);
   }
 
   function handleImageChange(file) {
@@ -154,7 +163,7 @@ function PageDesigner() {
               </Typography>
 
               <Button variant="contained" component="label" fullWidth>
-                انتخاب فایل از کامپیوتر
+                +
                 <input
                   type="file"
                   accept="image/*"
@@ -167,6 +176,18 @@ function PageDesigner() {
                 />
               </Button>
             </Box>
+          )}
+
+          {selectedElement && (
+            <Button
+              variant="outlined"
+              color="error"
+              fullWidth
+              sx={{ mt: 2 }}
+              onClick={handleDeleteElement}
+            >
+              حذف عنصر انتخاب‌شده
+            </Button>
           )}
         </Grid>
       </DragDropProvider>
