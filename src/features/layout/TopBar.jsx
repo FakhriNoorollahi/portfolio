@@ -7,7 +7,6 @@ function TopBar() {
   const navigate = useNavigate();
 
   const { menus } = useManageMenu();
-  console.log(menus);
 
   return (
     <Stack
