@@ -1,58 +1,53 @@
 import {
-  Button,
   FormControl,
   InputLabel,
   MenuItem,
   Select,
-  TextField,
-  Typography,
+  TableCell,
+  TableRow,
 } from "@mui/material";
 import { useState } from "react";
-import ListItem from "@mui/material/ListItem";
+import AppButtonIcon from "../../../ui/AppButtonIcon";
 
-const MENU_ITEMS = [
-  { id: 1, title: "component" },
-  { id: 2, title: "page" },
-];
+function ManagmentMenuItem({ item, handleActiveClick }) {
+  const [selectValue, setSelectValue] = useState("");
 
-function ManagmentMenuItem({ item, onHandleAdd }) {
-  const [selectValue, setSelectValue] = useState(item.type || "");
-  const [url, setUrl] = useState(item.url || "");
-
-  const onHandleButton = () => {
-    const value = { id: item.id, selectValue, url };
-    onHandleAdd(value);
+  const onActiveButton = () => {
+    handleActiveClick(item, selectValue);
   };
 
   return (
-    <ListItem>
-      <Typography variant="p">{item.title}</Typography>
-      <FormControl sx={{ m: 1, minWidth: 120 }}>
-        <InputLabel id="demo-simple-select-standard-label">Select</InputLabel>
-        <Select
-          value={selectValue}
-          label="Select"
-          onChange={(e) => setSelectValue(e.target.value)}
-        >
-          {MENU_ITEMS.map((itemMenu) => (
-            <MenuItem key={itemMenu.id} value={itemMenu.title}>
-              {itemMenu.title}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-      {selectValue === "page" && (
-        <TextField
-          label="url"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-        />
-      )}
-
-      <Button color="primary" onClick={onHandleButton}>
-        Add
-      </Button>
-    </ListItem>
+    <TableRow
+      key={item.id}
+      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+    >
+      <TableCell component="th" scope="row">
+        {item.title}
+      </TableCell>
+      <TableCell component="th" scope="row">
+        {item.title}
+      </TableCell>
+      <TableCell component="th" scope="row">
+        <FormControl sx={{ m: 1, minWidth: 120 }}>
+          <InputLabel id="demo-simple-select-standard-label">Select</InputLabel>
+          <Select
+            value={selectValue}
+            label="Select"
+            onChange={(e) => setSelectValue(e.target.value)}
+          >
+            {item?.subItems?.map((itemMenu) => (
+              <MenuItem key={itemMenu.id} value={itemMenu.id}>
+                {itemMenu.title}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </TableCell>
+      <TableCell component="th" scope="row">
+        <AppButtonIcon handler={onActiveButton}>+</AppButtonIcon>
+        <AppButtonIcon handler={onActiveButton}>-</AppButtonIcon>
+      </TableCell>
+    </TableRow>
   );
 }
 

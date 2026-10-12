@@ -8,20 +8,24 @@ import { useManageMenu } from "../../../context/mangeMenu/useManageMenu";
 function PagesListMain() {
   const [title, setTitle] = useState("");
 
-  const { webPages, saveWebPageLocalStorage } = useManageMenu();
+  const { webPages, saveWebPageLocalStorage, saveMenuesItemLocalStorage } =
+    useManageMenu();
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleAddPage = () => {
-    const newPage = { id: new Date().getTime(), title };
+    const newPage = { id: new Date().getTime(), title, isActive: false };
     const updatedPages = [...webPages, newPage];
 
     saveWebPageLocalStorage(updatedPages);
+    saveMenuesItemLocalStorage(
+      { ...newPage, link: `/${newPage.title.toLocaleLowerCase()}` },
+      "Pages",
+    );
 
     setIsOpen(false);
     setTitle("");
   };
-  console.log(webPages);
 
   return (
     <Stack sx={{ paddingY: "20px" }} spacing={3}>
