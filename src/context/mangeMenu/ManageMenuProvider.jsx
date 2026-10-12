@@ -10,6 +10,12 @@ const componentsSubItems = [
   { id: 123456789, title: "خانه", isActive: true, link: "/" },
   { id: 125021475, title: "محصولات", isActive: true, link: "/products" },
   { id: 120120123, title: "طراحی صفحه ", isActive: true, link: "/pages-list" },
+  {
+    id: 125242586,
+    title: "مدیریت منو",
+    isActive: true,
+    link: "/managment-menu",
+  },
 ];
 
 const menusItems = ["Components", "Pages", "Addresses"].map((item) => {

@@ -13,7 +13,6 @@ import ManagmentMenuItem from "./ManagmentMenuItem";
 const tableHeaders = [
   { id: 1, title: "Type" },
   { id: 2, title: "title" },
-  { id: 3, title: "" },
   { id: 4, title: "Active/Deactive" },
 ];
 

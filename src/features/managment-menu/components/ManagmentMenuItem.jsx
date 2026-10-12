@@ -24,9 +24,7 @@ function ManagmentMenuItem({ item, handleActiveClick }) {
       <TableCell component="th" scope="row">
         {item.title}
       </TableCell>
-      <TableCell component="th" scope="row">
-        {item.title}
-      </TableCell>
+
       <TableCell component="th" scope="row">
         <FormControl sx={{ m: 1, minWidth: 120 }}>
           <InputLabel id="demo-simple-select-standard-label">Select</InputLabel>
