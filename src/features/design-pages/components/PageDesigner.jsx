@@ -11,7 +11,7 @@ import { Box, Button, TextField, Typography } from "@mui/material";
 import findElement from "../utils/finElement.js";
 import updateElement from "../utils/updateElement.js";
 import deleteElement from "../utils/deleteElements.js";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   getDataLocalStorage,
   saveDataLocalStorage,
@@ -21,8 +21,7 @@ const PAGE_DESIGNS = "page_designs";
 
 function PageDesigner() {
   const { id: pageId } = useParams();
-  console.log(pageId);
-
+  const navigate = useNavigate();
   const [elements, setElements] = useState(() => {
     const savedDesigns = getDataLocalStorage(PAGE_DESIGNS) || {};
     return savedDesigns[pageId] || [];
@@ -43,7 +42,7 @@ function PageDesigner() {
 
     saveDataLocalStorage(PAGE_DESIGNS, updatedDesigns);
 
-    alert("طراحی صفحه ذخیره شد.");
+    navigate("/managment-menu");
   }
 
   function handlePropChange(propName, value) {

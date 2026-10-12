@@ -1,17 +1,19 @@
 import { useParams } from "react-router-dom";
 import { getDataLocalStorage } from "../../../hooks/useLocalStorage";
-import { PAGE_DESIGNS, WEB_PAGES } from "../../../constants/constants";
+import { PAGE_DESIGNS } from "../../../constants/constants";
 import TypographyElement from "../../design-pages/components/TypographyElement.jsx";
 import ImageElement from "../../design-pages/components/ImageElement.jsx";
 import StackElement from "../../design-pages/components/stackElement.jsx";
+import { useManageMenu } from "../../../context/mangeMenu/useManageMenu.js";
 
 function NewComponentsMain() {
-  const { id: name } = useParams();
+  const { dynamicUrl } = useParams();
+
   const savedDesigns = getDataLocalStorage(PAGE_DESIGNS) || {};
-  const webPages = getDataLocalStorage(WEB_PAGES) || [];
+  const { webPages } = useManageMenu();
 
   const currentPage = webPages.find(
-    (page) => page.title.toLowerCase() === name.toLowerCase(),
+    (page) => page.url.toLowerCase() === dynamicUrl.toLowerCase(),
   );
 
   const elements = currentPage ? savedDesigns[currentPage.id] || [] : [];

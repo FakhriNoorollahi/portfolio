@@ -1,26 +1,22 @@
 import { List, ListItem, ListItemText, Stack } from "@mui/material";
 import AppButton from "../../../ui/AppButton";
 import { useState } from "react";
-import {
-  getDataLocalStorage,
-  saveDataLocalStorage,
-} from "../../../hooks/useLocalStorage";
-import { WEB_PAGES } from "../constants/pages-list-const";
 import DesignModal from "./PagesListModal";
 import { useNavigate } from "react-router-dom";
+import { useManageMenu } from "../../../context/mangeMenu/useManageMenu";
 
 function PagesListMain() {
   const [title, setTitle] = useState("");
-  const [webPages, setWebPages] = useState(getDataLocalStorage(WEB_PAGES));
+
+  const { webPages, saveWebPageLocalStorage } = useManageMenu();
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
-  console.log(webPages);
+
   const handleAddPage = () => {
     const newPage = { id: new Date().getTime(), title };
     const updatedPages = [...webPages, newPage];
 
-    setWebPages(updatedPages);
-    saveDataLocalStorage(WEB_PAGES, updatedPages);
+    saveWebPageLocalStorage(updatedPages);
 
     setIsOpen(false);
     setTitle("");

@@ -5,7 +5,7 @@ const TOOLBOXITEMS = [
   {
     type: "typography",
     label: "متن",
-    defaultProps: { text: "متن نمونه", fontSize: 24, color: "#000" },
+    defaultProps: { text: "متن نمونه", fontSize: 18, color: "#000" },
   },
   {
     type: "image",

@@ -3,8 +3,8 @@ export default function ImageElement({ src = "", alt = "Image" }) {
     return (
       <div
         style={{
-          width: "220px",
-          height: "140px",
+          width: "100px",
+          height: "100px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -25,8 +25,8 @@ export default function ImageElement({ src = "", alt = "Image" }) {
       alt={alt}
       style={{
         display: "block",
-        maxWidth: "100%",
-        height: "auto",
+        width: "150px",
+        height: "150px",
         borderRadius: "8px",
       }}
     />

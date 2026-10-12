@@ -1,8 +1,7 @@
 import { Stack, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import AppButton from "../../ui/AppButton";
-import { getDataLocalStorage } from "../../hooks/useLocalStorage";
-import { WEB_PAGES } from "../page-lists/constants/pages-list-const";
+import { useManageMenu } from "../../context/mangeMenu/useManageMenu";
 
 const NAV_ITEMS = [
   {
@@ -29,13 +28,16 @@ const NAV_ITEMS = [
 
 function TopBar() {
   const navigate = useNavigate();
-  const newMenues = getDataLocalStorage(WEB_PAGES) || [];
 
-  const updatedNavItems = newMenues.map((item) => ({
-    id: item.id,
-    label: item.title,
-    link: `/components/${item.title}`,
-  }));
+  const { webPages: newMenues } = useManageMenu();
+
+  const updatedNavItems = newMenues
+    .filter((item) => item.type === "page")
+    .map((item) => ({
+      id: item.id,
+      label: item.title,
+      link: `/${item.url}`,
+    }));
 
   const newM = [...NAV_ITEMS, ...updatedNavItems];
 
