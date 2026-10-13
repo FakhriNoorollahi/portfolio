@@ -10,7 +10,9 @@ import { useState } from "react";
 import AppButtonIcon from "../../../ui/AppButtonIcon";
 
 function ManagmentMenuItem({ item, handleActiveClick }) {
-  const [selectValue, setSelectValue] = useState("");
+  const [selectValue, setSelectValue] = useState(item?.subItems?.[0]?.id ?? "");
+  const activeElm = item?.subItems?.find((i) => +i.id === +selectValue);
+  const isActiveButton = activeElm?.isActive ?? false;
 
   const onActiveButton = () => {
     handleActiveClick(item, selectValue);
@@ -42,8 +44,12 @@ function ManagmentMenuItem({ item, handleActiveClick }) {
         </FormControl>
       </TableCell>
       <TableCell component="th" scope="row">
-        <AppButtonIcon handler={onActiveButton}>+</AppButtonIcon>
-        <AppButtonIcon handler={onActiveButton}>-</AppButtonIcon>
+        <AppButtonIcon disabled={isActiveButton} handler={onActiveButton}>
+          +
+        </AppButtonIcon>
+        <AppButtonIcon disabled={!isActiveButton} handler={onActiveButton}>
+          -
+        </AppButtonIcon>
       </TableCell>
     </TableRow>
   );
