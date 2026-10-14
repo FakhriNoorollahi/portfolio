@@ -4,24 +4,25 @@ import { useState } from "react";
 import DesignModal from "./PagesListModal";
 import { useNavigate } from "react-router-dom";
 import { useManageMenu } from "../../../context/mangeMenu/useManageMenu";
+import { WEB_PAGES } from "../../../constants/constants";
 
 function PagesListMain() {
   const [title, setTitle] = useState("");
 
-  const { webPages, saveWebPageLocalStorage, saveMenuesItemLocalStorage } =
-    useManageMenu();
+  const { webPages, saveWebPageLocalStorage } = useManageMenu();
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleAddPage = () => {
-    const newPage = { id: new Date().getTime(), title, isActive: false };
+    const newPage = {
+      id: new Date().getTime(),
+      title,
+      isActive: false,
+      type: WEB_PAGES,
+      link: title,
+    };
     const updatedPages = [...webPages, newPage];
-
     saveWebPageLocalStorage(updatedPages);
-    saveMenuesItemLocalStorage(
-      { ...newPage, link: `/${newPage.title.toLocaleLowerCase()}` },
-      "Pages",
-    );
 
     setIsOpen(false);
     setTitle("");

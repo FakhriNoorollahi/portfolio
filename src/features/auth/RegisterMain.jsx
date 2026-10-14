@@ -57,7 +57,7 @@ const RegisterMain = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log(formData);
+
     const { username, password } = formData;
     try {
       const res = await registerUser({ username, password });

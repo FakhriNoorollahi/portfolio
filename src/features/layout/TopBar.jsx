@@ -6,7 +6,7 @@ import { useManageMenu } from "../../context/mangeMenu/useManageMenu";
 function TopBar() {
   const navigate = useNavigate();
 
-  const { menus } = useManageMenu();
+  const { menus, getMenus } = useManageMenu();
 
   return (
     <Stack
@@ -17,11 +17,13 @@ function TopBar() {
       }}
     >
       <Stack spacing={3} direction="row">
-        {menus.map((item) => {
-          return item.subItems.map((p) => {
-            if (p.isActive) {
+        {menus?.map((item) => {
+          const menusItems = getMenus(item.type) || [];
+          if (!menusItems.length) return;
+          return menusItems?.map((p) => {
+            if (p?.isActive) {
               return (
-                <AppButton key={p.id} handler={() => navigate(p.link)}>
+                <AppButton key={p.id} handler={() => navigate(`/${p.link}`)}>
                   {p.title}
                 </AppButton>
               );

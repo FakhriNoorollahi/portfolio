@@ -13,7 +13,7 @@ function NewComponentsMain() {
   const { webPages } = useManageMenu();
 
   const currentPage = webPages.find(
-    (page) => page?.title?.toLowerCase() === dynamicUrl.toLowerCase(),
+    (page) => page?.link?.toLowerCase() === dynamicUrl.toLowerCase(),
   );
 
   const elements = currentPage ? savedDesigns[currentPage.id] || [] : [];
