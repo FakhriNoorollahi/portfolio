@@ -16,6 +16,9 @@ import {
   getDataLocalStorage,
   saveDataLocalStorage,
 } from "../../../hooks/useLocalStorage.js";
+import SortableStackItems from "./SortableStackItems.jsx";
+import { isSortable } from "@dnd-kit/react/sortable";
+import { reorderStackChildren } from "../utils/reorderStackChildren.js";
 
 const PAGE_DESIGNS = "page_designs";
 
@@ -80,6 +83,20 @@ function PageDesigner() {
     if (event.canceled) return;
 
     const { source, target } = event.operation;
+    console.log(source);
+
+    if (isSortable(source)) {
+      const { initialIndex, index, group } = source;
+      console.log(elements[0].children, initialIndex, index);
+
+      if (group == null || initialIndex === index) return;
+
+      setElements((previous) =>
+        reorderStackChildren(previous, group, initialIndex, index),
+      );
+
+      return;
+    }
 
     if (!target) {
       return;
@@ -116,6 +133,8 @@ function PageDesigner() {
       return;
     }
 
+    console.log(targetId);
+
     if (targetId.startsWith("stack-")) {
       const stackId = targetId.slice("stack-".length);
 
@@ -140,7 +159,16 @@ function PageDesigner() {
         {element.type === "stack" && (
           <Droppable id={`stack-${element.id}`}>
             <StackElement>
-              {element.children.map((child) => renderElement(child))}
+              {element.children.map((child, index) => (
+                <SortableStackItems
+                  group={`stack-${element.id}`}
+                  key={child.id}
+                  id={child.id}
+                  index={index}
+                >
+                  {renderElement(child)}
+                </SortableStackItems>
+              ))}
             </StackElement>
           </Droppable>
         )}
