@@ -43,6 +43,9 @@ function PageDesigner() {
       ...savedDesigns,
       [pageId]: elements,
     };
+    console.log("savedDesigns", savedDesigns);
+    console.log("elements", elements);
+    console.log("updatedDesigns", updatedDesigns);
 
     saveDataLocalStorage(PAGE_DESIGNS, updatedDesigns);
 
