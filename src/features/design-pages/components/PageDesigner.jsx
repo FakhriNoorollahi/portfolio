@@ -16,9 +16,10 @@ import {
   getDataLocalStorage,
   saveDataLocalStorage,
 } from "../../../hooks/useLocalStorage.js";
-import SortableStackItems from "./SortableStackItems.jsx";
 import { isSortable } from "@dnd-kit/react/sortable";
-import { reorderStackChildren } from "../utils/reorderStackChildren.js";
+
+import SortableElement from "./SortableElement.jsx";
+import reorderElements from "../utils/reorderElements.js";
 
 const PAGE_DESIGNS = "page_designs";
 
@@ -83,22 +84,18 @@ function PageDesigner() {
     if (event.canceled) return;
 
     const { source, target } = event.operation;
-    console.log(source);
+
+    if (!target) return;
 
     if (isSortable(source)) {
       const { initialIndex, index, group } = source;
-      console.log(elements[0].children, initialIndex, index);
 
       if (group == null || initialIndex === index) return;
 
       setElements((previous) =>
-        reorderStackChildren(previous, group, initialIndex, index),
+        reorderElements(previous, group, initialIndex, index),
       );
 
-      return;
-    }
-
-    if (!target) {
       return;
     }
 
@@ -109,31 +106,24 @@ function PageDesigner() {
     }
 
     const defaultProps = {
-      typography: {
-        text: "متن نمونه",
-      },
-      image: {
-        src: "",
-        alt: "تصویر",
-      },
+      typography: { text: "متن نمونه" },
+      image: { src: "", alt: "تصویر" },
       stack: {},
     };
 
     const newElement = {
-      id: new Date().getTime(),
+      id: crypto.randomUUID(),
       type,
       props: { ...defaultProps[type] },
       children: [],
     };
 
-    const targetId = target.id;
+    const targetId = String(target.id);
 
     if (targetId === "canvas") {
       setElements((current) => [...current, newElement]);
       return;
     }
-
-    console.log(targetId);
 
     if (targetId.startsWith("stack-")) {
       const stackId = targetId.slice("stack-".length);
@@ -145,29 +135,24 @@ function PageDesigner() {
   function renderElement(element) {
     return (
       <div
-        key={element.id}
         onClick={(event) => {
           event.stopPropagation();
           setSelectedElementId(element.id);
-        }}
-        style={{
-          marginBottom: "16px",
-          outline:
-            selectedElementId === element.id ? "2px solid #1976d2" : "none",
         }}
       >
         {element.type === "stack" && (
           <Droppable id={`stack-${element.id}`}>
             <StackElement>
               {element.children.map((child, index) => (
-                <SortableStackItems
-                  group={`stack-${element.id}`}
+                <SortableElement
                   key={child.id}
                   id={child.id}
                   index={index}
+                  group={`stack-${element.id}`}
+                  type={child.type}
                 >
                   {renderElement(child)}
-                </SortableStackItems>
+                </SortableElement>
               ))}
             </StackElement>
           </Droppable>
@@ -204,7 +189,17 @@ function PageDesigner() {
 
           <Grid size={7}>
             <Droppable id="canvas">
-              {elements.map((element) => renderElement(element))}
+              {elements.map((element, index) => (
+                <SortableElement
+                  key={element.id}
+                  id={element.id}
+                  index={index}
+                  group="canvas"
+                  type={element.type}
+                >
+                  {renderElement(element)}
+                </SortableElement>
+              ))}
             </Droppable>
           </Grid>
           <Grid size={3}>

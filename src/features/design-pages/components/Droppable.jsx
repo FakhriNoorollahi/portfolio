@@ -1,12 +1,13 @@
 import { useDroppable } from "@dnd-kit/react";
 import Box from "@mui/material/Box";
+import { CollisionPriority } from "@dnd-kit/abstract";
 
 function Droppable({ id, children }) {
+  const isCanvas = id === "canvas";
   const { ref } = useDroppable({
     id,
+    collisionPriority: isCanvas ? CollisionPriority.Low : CollisionPriority.Low,
   });
-
-  const isCanvas = id === "canvas";
 
   return (
     <Box
