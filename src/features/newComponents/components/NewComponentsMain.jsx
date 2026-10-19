@@ -5,6 +5,7 @@ import TypographyElement from "../../design-pages/components/TypographyElement.j
 import ImageElement from "../../design-pages/components/ImageElement.jsx";
 import StackElement from "../../design-pages/components/stackElement.jsx";
 import { useManageMenu } from "../../../context/mangeMenu/useManageMenu.js";
+import ColumnsElement from "../../design-pages/components/ColumnsElement.jsx";
 
 function NewComponentsMain() {
   const { dynamicUrl } = useParams();
@@ -18,7 +19,11 @@ function NewComponentsMain() {
 
   const elements = currentPage ? savedDesigns[currentPage.id] || [] : [];
 
+  console.log(elements);
+
   function renderElement(element) {
+    console.log(element);
+
     return (
       <div key={element.id} style={{ marginBottom: "16px" }}>
         {element.type === "typography" && (
@@ -36,6 +41,14 @@ function NewComponentsMain() {
           <StackElement>
             {(element.children || []).map(renderElement)}
           </StackElement>
+        )}
+
+        {element.type === "columns" && (
+          <ColumnsElement gap={16}>
+            {(element.children || []).map((elm) =>
+              (elm.children || []).map(renderElement),
+            )}
+          </ColumnsElement>
         )}
       </div>
     );

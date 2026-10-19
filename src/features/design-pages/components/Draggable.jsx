@@ -18,6 +18,15 @@ const TOOLBOXITEMS = [
     defaultProps: { direction: "horizontal", gap: 12, padding: 16 },
     acceptsChildren: true,
   },
+  {
+    type: "columns",
+    label: "ستون",
+    defaultProps: {
+      count: 3,
+      gap: 16,
+    },
+    acceptsChildren: true,
+  },
 ];
 
 export function Draggable() {

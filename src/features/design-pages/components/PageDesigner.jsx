@@ -19,6 +19,9 @@ import {
 import { isSortable } from "@dnd-kit/react/sortable";
 import SortableElement from "./SortableElement.jsx";
 import reorderElements from "../utils/reorderElements.js";
+import { createColumns } from "../utils/createColumns.js";
+import ColumnElement from "./ColumnElement.jsx";
+import ColumnsElement from "./ColumnsElement.jsx";
 
 const PAGE_DESIGNS = "page_designs";
 
@@ -60,8 +63,6 @@ function PageDesigner() {
   function handleDeleteElement() {
     if (selectedElementId === null) return;
 
-    deleteElement(elements, selectedElementId);
-
     setElements((current) => deleteElement(current, selectedElementId));
 
     setSelectedElementId(null);
@@ -84,71 +85,6 @@ function PageDesigner() {
     reader.readAsDataURL(file);
   }
 
-  // function handleDragEnd(event) {
-  //   if (event.canceled) return;
-
-  //   const { source, target } = event.operation;
-
-  //   if (!target) return;
-
-  //   if (isSortable(source)) {
-  //     const { initialIndex, index, group, initialGroup, id } = source;
-
-  //     if (group == null || initialIndex === index) return;
-
-  //     console.log("DROP WITHOUT STATE UPDATE", {
-  //       id,
-  //       initialGroup,
-  //       group,
-  //       initialIndex,
-  //       index,
-  //       targetId: target?.id,
-  //     });
-
-  //     setElements((previous) => {
-  //       const next = reorderElements(previous, group, id, index);
-
-  //       console.log("PREVIOUS", previous);
-  //       console.log("NEXT", next);
-  //       return next;
-  //     });
-
-  //     return;
-  //   }
-
-  //   const type = source.data?.type;
-
-  //   if (!["typography", "image", "stack"].includes(type)) {
-  //     return;
-  //   }
-
-  //   const defaultProps = {
-  //     typography: { text: "متن نمونه" },
-  //     image: { src: "", alt: "تصویر" },
-  //     stack: {},
-  //   };
-
-  //   const newElement = {
-  //     id: crypto.randomUUID(),
-  //     type,
-  //     props: { ...defaultProps[type] },
-  //     children: [],
-  //   };
-
-  //   const targetId = String(target.id);
-
-  //   if (targetId === "canvas") {
-  //     setElements((current) => [...current, newElement]);
-  //     return;
-  //   }
-
-  //   if (targetId.startsWith("stack-")) {
-  //     const stackId = targetId.slice("stack-".length);
-
-  //     setElements((current) => addChildToStack(current, stackId, newElement));
-  //   }
-  // }
-
   function handleDragEnd(event) {
     if (event.canceled) return;
 
@@ -156,50 +92,23 @@ function PageDesigner() {
 
     if (!source || !target) return;
 
-    // if (isSortable(source)) {
-    //   const { initialIndex, index, group, initialGroup, id } = source;
-    //   console.log("SORTABLE DROP", {
-    //     id,
-    //     initialGroup,
-    //     group,
-    //     initialIndex,
-    //     index,
-    //     targetId: target?.id,
-    //   });
-
-    //   if (group == null || initialGroup == null) return;
-
-    //   const groupChanged = initialGroup !== group;
-    //   const indexChanged = initialIndex !== index;
-
-    //   if (!groupChanged && !indexChanged) return;
-
-    //   setElements((previous) => {
-    //     const n = reorderElements(previous, group, id, index);
-    //     console.log(n);
-
-    //     return n;
-    //   });
-
-    //   return;
-    // }
-
     if (isSortable(source)) {
       let targetGroup;
       let targetIndex;
 
       if (isSortable(target)) {
-        // Dropped over another sortable element
         targetGroup = target.group;
         targetIndex = target.index;
       } else {
-        // Dropped over an empty canvas or stack container
         const targetId = String(target.id);
 
         if (targetId === "canvas") {
           targetGroup = "canvas";
           targetIndex = elements.length;
-        } else if (targetId.startsWith("stack-")) {
+        } else if (
+          targetId.startsWith("stack-") ||
+          targetId.startsWith("column-")
+        ) {
           targetGroup = targetId;
           targetIndex = Number.MAX_SAFE_INTEGER;
         } else {
@@ -209,25 +118,16 @@ function PageDesigner() {
 
       if (targetGroup == null) return;
 
-      setElements((previous) => {
-        const a = reorderElements(
-          previous,
-          targetGroup,
-          source.id,
-          targetIndex,
-        );
-        console.log(previous);
-        console.log(a);
-
-        return a;
-      });
+      setElements((previous) =>
+        reorderElements(previous, targetGroup, source.id, targetIndex),
+      );
 
       return;
     }
 
     const type = source.data?.type;
 
-    if (!["typography", "image", "stack"].includes(type)) {
+    if (!["typography", "image", "stack", "columns"].includes(type)) {
       return;
     }
 
@@ -236,6 +136,17 @@ function PageDesigner() {
       image: { src: "", alt: "تصویر" },
       stack: {},
     };
+
+    if (type === "columns") {
+      const newColumns = createColumns(3, 16);
+      const targetId = String(target.id);
+
+      if (targetId === "canvas") {
+        setElements((current) => [...current, newColumns]);
+      }
+
+      return;
+    }
 
     const newElement = {
       id: crypto.randomUUID(),
@@ -252,6 +163,13 @@ function PageDesigner() {
       const stackId = targetId.slice("stack-".length);
 
       setElements((current) => addChildToStack(current, stackId, newElement));
+    } else if (
+      targetId.startsWith("column-") &&
+      !targetId.startsWith("columns-")
+    ) {
+      const columnId = targetId.slice("column-".length);
+
+      setElements((current) => addChildToStack(current, columnId, newElement));
     }
   }
 
@@ -284,6 +202,42 @@ function PageDesigner() {
 
         {element.type === "typography" && (
           <TypographyElement text={element.props?.text || "New heading"} />
+        )}
+
+        {element.type === "columns" && (
+          <Droppable id={`columns-${element.id}`}>
+            <ColumnsElement gap={element.props?.gap ?? 16}>
+              {element.children.map((column, index) => (
+                <SortableElement
+                  key={column.id}
+                  id={column.id}
+                  index={index}
+                  group={`columns-${element.id}`}
+                  type="column"
+                >
+                  {renderElement(column)}
+                </SortableElement>
+              ))}
+            </ColumnsElement>
+          </Droppable>
+        )}
+
+        {element.type === "column" && (
+          <Droppable id={`column-${element.id}`}>
+            <ColumnElement label={element.props?.label}>
+              {element.children.map((child, index) => (
+                <SortableElement
+                  key={child.id}
+                  id={child.id}
+                  index={index}
+                  group={`column-${element.id}`}
+                  type={child.type}
+                >
+                  {renderElement(child)}
+                </SortableElement>
+              ))}
+            </ColumnElement>
+          </Droppable>
         )}
 
         {element.type === "image" && (

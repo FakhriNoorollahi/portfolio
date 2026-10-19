@@ -10,8 +10,10 @@ function SortableElement({ id, index, group, type, children }) {
     type,
     accept:
       group === "canvas"
-        ? ["stack", "image", "typography"]
-        : ["image", "typography"],
+        ? ["stack", "image", "typography", "columns"]
+        : group.startsWith("columns-")
+          ? ["column"]
+          : ["image", "typography", "stack"],
     plugins: [SortableKeyboardPlugin],
   });
 
