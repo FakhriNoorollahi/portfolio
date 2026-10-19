@@ -1,4 +1,5 @@
 import { useSortable } from "@dnd-kit/react/sortable";
+import { SortableKeyboardPlugin } from "@dnd-kit/dom/sortable";
 import { Box } from "@mui/material";
 
 function SortableElement({ id, index, group, type, children }) {
@@ -7,7 +8,11 @@ function SortableElement({ id, index, group, type, children }) {
     index,
     group,
     type,
-    accept: ["stack", "image", "typography"],
+    accept:
+      group === "canvas"
+        ? ["stack", "image", "typography"]
+        : ["image", "typography"],
+    plugins: [SortableKeyboardPlugin],
   });
 
   return (

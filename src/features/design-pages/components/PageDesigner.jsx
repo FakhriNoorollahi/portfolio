@@ -17,7 +17,6 @@ import {
   saveDataLocalStorage,
 } from "../../../hooks/useLocalStorage.js";
 import { isSortable } from "@dnd-kit/react/sortable";
-
 import SortableElement from "./SortableElement.jsx";
 import reorderElements from "../utils/reorderElements.js";
 
@@ -61,6 +60,8 @@ function PageDesigner() {
   function handleDeleteElement() {
     if (selectedElementId === null) return;
 
+    deleteElement(elements, selectedElementId);
+
     setElements((current) => deleteElement(current, selectedElementId));
 
     setSelectedElementId(null);
@@ -83,21 +84,143 @@ function PageDesigner() {
     reader.readAsDataURL(file);
   }
 
+  // function handleDragEnd(event) {
+  //   if (event.canceled) return;
+
+  //   const { source, target } = event.operation;
+
+  //   if (!target) return;
+
+  //   if (isSortable(source)) {
+  //     const { initialIndex, index, group, initialGroup, id } = source;
+
+  //     if (group == null || initialIndex === index) return;
+
+  //     console.log("DROP WITHOUT STATE UPDATE", {
+  //       id,
+  //       initialGroup,
+  //       group,
+  //       initialIndex,
+  //       index,
+  //       targetId: target?.id,
+  //     });
+
+  //     setElements((previous) => {
+  //       const next = reorderElements(previous, group, id, index);
+
+  //       console.log("PREVIOUS", previous);
+  //       console.log("NEXT", next);
+  //       return next;
+  //     });
+
+  //     return;
+  //   }
+
+  //   const type = source.data?.type;
+
+  //   if (!["typography", "image", "stack"].includes(type)) {
+  //     return;
+  //   }
+
+  //   const defaultProps = {
+  //     typography: { text: "متن نمونه" },
+  //     image: { src: "", alt: "تصویر" },
+  //     stack: {},
+  //   };
+
+  //   const newElement = {
+  //     id: crypto.randomUUID(),
+  //     type,
+  //     props: { ...defaultProps[type] },
+  //     children: [],
+  //   };
+
+  //   const targetId = String(target.id);
+
+  //   if (targetId === "canvas") {
+  //     setElements((current) => [...current, newElement]);
+  //     return;
+  //   }
+
+  //   if (targetId.startsWith("stack-")) {
+  //     const stackId = targetId.slice("stack-".length);
+
+  //     setElements((current) => addChildToStack(current, stackId, newElement));
+  //   }
+  // }
+
   function handleDragEnd(event) {
     if (event.canceled) return;
 
     const { source, target } = event.operation;
 
-    if (!target) return;
+    if (!source || !target) return;
+
+    // if (isSortable(source)) {
+    //   const { initialIndex, index, group, initialGroup, id } = source;
+    //   console.log("SORTABLE DROP", {
+    //     id,
+    //     initialGroup,
+    //     group,
+    //     initialIndex,
+    //     index,
+    //     targetId: target?.id,
+    //   });
+
+    //   if (group == null || initialGroup == null) return;
+
+    //   const groupChanged = initialGroup !== group;
+    //   const indexChanged = initialIndex !== index;
+
+    //   if (!groupChanged && !indexChanged) return;
+
+    //   setElements((previous) => {
+    //     const n = reorderElements(previous, group, id, index);
+    //     console.log(n);
+
+    //     return n;
+    //   });
+
+    //   return;
+    // }
 
     if (isSortable(source)) {
-      const { initialIndex, index, group } = source;
+      let targetGroup;
+      let targetIndex;
 
-      if (group == null || initialIndex === index) return;
+      if (isSortable(target)) {
+        // Dropped over another sortable element
+        targetGroup = target.group;
+        targetIndex = target.index;
+      } else {
+        // Dropped over an empty canvas or stack container
+        const targetId = String(target.id);
 
-      setElements((previous) =>
-        reorderElements(previous, group, initialIndex, index),
-      );
+        if (targetId === "canvas") {
+          targetGroup = "canvas";
+          targetIndex = elements.length;
+        } else if (targetId.startsWith("stack-")) {
+          targetGroup = targetId;
+          targetIndex = Number.MAX_SAFE_INTEGER;
+        } else {
+          return;
+        }
+      }
+
+      if (targetGroup == null) return;
+
+      setElements((previous) => {
+        const a = reorderElements(
+          previous,
+          targetGroup,
+          source.id,
+          targetIndex,
+        );
+        console.log(previous);
+        console.log(a);
+
+        return a;
+      });
 
       return;
     }
@@ -125,10 +248,7 @@ function PageDesigner() {
 
     if (targetId === "canvas") {
       setElements((current) => [...current, newElement]);
-      return;
-    }
-
-    if (targetId.startsWith("stack-")) {
+    } else if (targetId.startsWith("stack-")) {
       const stackId = targetId.slice("stack-".length);
 
       setElements((current) => addChildToStack(current, stackId, newElement));
@@ -138,6 +258,7 @@ function PageDesigner() {
   function renderElement(element) {
     return (
       <div
+        key={element.id}
         onClick={(event) => {
           event.stopPropagation();
           setSelectedElementId(element.id);

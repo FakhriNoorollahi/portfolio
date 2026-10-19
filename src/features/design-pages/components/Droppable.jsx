@@ -6,7 +6,9 @@ function Droppable({ id, children }) {
   const isCanvas = id === "canvas";
   const { ref } = useDroppable({
     id,
-    collisionPriority: isCanvas ? CollisionPriority.Low : CollisionPriority.Low,
+    collisionPriority: isCanvas
+      ? CollisionPriority.Low
+      : CollisionPriority.High,
   });
 
   return (

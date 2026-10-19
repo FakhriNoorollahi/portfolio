@@ -1,4 +1,6 @@
 function deleteElement(elements, id) {
+  console.log("delete", elements, id);
+
   return elements
     .filter((element) => element.id !== id)
     .map((element) => ({
