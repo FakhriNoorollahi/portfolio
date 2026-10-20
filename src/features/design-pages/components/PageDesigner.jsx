@@ -22,6 +22,8 @@ import reorderElements from "../utils/reorderElements.js";
 import { createColumns } from "../utils/createColumns.js";
 import ColumnElement from "./ColumnElement.jsx";
 import ColumnsElement from "./ColumnsElement.jsx";
+import ProductSearch from "../../../common/components/ProductSearch.jsx";
+import ProductsTableDesign from "./ProductsTableDesign.jsx";
 
 const PAGE_DESIGNS = "page_designs";
 
@@ -127,7 +129,17 @@ function PageDesigner() {
 
     const type = source.data?.type;
 
-    if (!["typography", "image", "stack", "columns"].includes(type)) {
+    if (
+      ![
+        "typography",
+        "image",
+        "stack",
+        "columns",
+        "productsTable",
+        "productSearch",
+        "productCount",
+      ].includes(type)
+    ) {
       return;
     }
 
@@ -135,6 +147,15 @@ function PageDesigner() {
       typography: { text: "متن نمونه" },
       image: { src: "", alt: "تصویر" },
       stack: {},
+      productsTable: {
+        title: "محصولات",
+      },
+      productSearch: {
+        placeholder: "جست‌وجوی محصول...",
+      },
+      productCount: {
+        label: "تعداد محصولات",
+      },
     };
 
     if (type === "columns") {
@@ -154,6 +175,8 @@ function PageDesigner() {
       props: { ...defaultProps[type] },
       children: [],
     };
+
+    console.log(newElement);
 
     const targetId = String(target.id);
 
@@ -246,6 +269,12 @@ function PageDesigner() {
             alt={element.props?.alt || "Image"}
           />
         )}
+
+        {element.type === "productSearch" && <ProductSearch mode="designer" />}
+
+        {element.type === "productsTable" && <ProductsTableDesign />}
+
+        {/* {element.type === "productCount" && <p>تعداد محصولات</p>} */}
       </div>
     );
   }

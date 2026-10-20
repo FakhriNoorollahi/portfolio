@@ -6,6 +6,8 @@ import ImageElement from "../../design-pages/components/ImageElement.jsx";
 import StackElement from "../../design-pages/components/stackElement.jsx";
 import { useManageMenu } from "../../../context/mangeMenu/useManageMenu.js";
 import ColumnsElement from "../../design-pages/components/ColumnsElement.jsx";
+import ProductSearch from "../../../common/components/ProductSearch.jsx";
+import ProductsTableDesign from "../../design-pages/components/ProductsTableDesign.jsx";
 
 function NewComponentsMain() {
   const { dynamicUrl } = useParams();
@@ -50,6 +52,10 @@ function NewComponentsMain() {
             )}
           </ColumnsElement>
         )}
+
+        {element.type === "productSearch" && <ProductSearch mode="designer" />}
+
+        {element.type === "productsTable" && <ProductsTableDesign />}
       </div>
     );
   }

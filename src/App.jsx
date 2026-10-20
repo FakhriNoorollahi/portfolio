@@ -20,6 +20,7 @@ import PagesListPage from "./pages/PagesListPage";
 import DesignPagesPage from "./pages/DesignPagesPage";
 import NewComponentsPage from "./pages/NewComponentsPage";
 import ManageMenuProvider from "./context/mangeMenu/ManageMenuProvider";
+import { DesignerProductsProvider } from "./context/DesignerProducts/DesignerProductsProvider";
 
 function App() {
   return (
@@ -58,7 +59,14 @@ function App() {
               </Route>
               <Route element={<ProtectedRoute type="protected" />}>
                 <Route path="/designer-page" element={<ProductsLayout />}>
-                  <Route path=":id" element={<DesignPagesPage />} />
+                  <Route
+                    path=":id"
+                    element={
+                      <DesignerProductsProvider>
+                        <DesignPagesPage />
+                      </DesignerProductsProvider>
+                    }
+                  />
                 </Route>
               </Route>
               <Route element={<ProtectedRoute type="protected" />}>
@@ -68,7 +76,14 @@ function App() {
               </Route>
               <Route element={<ProtectedRoute type="protected" />}>
                 <Route path=":dynamicUrl" element={<ProductsLayout />}>
-                  <Route index element={<NewComponentsPage />} />
+                  <Route
+                    index
+                    element={
+                      <DesignerProductsProvider>
+                        <NewComponentsPage />
+                      </DesignerProductsProvider>
+                    }
+                  />
                 </Route>
               </Route>
             </Routes>

@@ -27,6 +27,27 @@ const TOOLBOXITEMS = [
     },
     acceptsChildren: true,
   },
+  {
+    type: "productsTable",
+    label: "جدول محصولات",
+    defaultProps: {
+      title: "محصولات",
+    },
+  },
+  {
+    type: "productSearch",
+    label: "جست‌وجوی محصولات",
+    defaultProps: {
+      placeholder: "جست‌وجوی محصول...",
+    },
+  },
+  // {
+  //   type: "productCount",
+  //   label: "تعداد محصولات",
+  //   defaultProps: {
+  //     label: "تعداد محصولات",
+  //   },
+  // },
 ];
 
 export function Draggable() {
