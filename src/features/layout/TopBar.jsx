@@ -2,11 +2,13 @@ import { Stack, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import AppButton from "../../ui/AppButton";
 import { useManageMenu } from "../../context/mangeMenu/useManageMenu";
+import { WEB_PAGES } from "../../constants/constants";
 
 function TopBar() {
   const navigate = useNavigate();
 
   const { menus, getMenus } = useManageMenu();
+  console.log(menus);
 
   return (
     <Stack
@@ -23,7 +25,14 @@ function TopBar() {
           return menusItems?.map((p) => {
             if (p?.isActive) {
               return (
-                <AppButton key={p.id} handler={() => navigate(`/${p.link}`)}>
+                <AppButton
+                  key={p.id}
+                  handler={() =>
+                    p.type === WEB_PAGES
+                      ? navigate(`/pages`)
+                      : navigate(`/${p.link}`)
+                  }
+                >
                   {p.title}
                 </AppButton>
               );

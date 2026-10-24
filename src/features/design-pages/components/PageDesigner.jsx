@@ -1,5 +1,5 @@
 import { DragDropProvider } from "@dnd-kit/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Draggable from "./Draggable";
 import Droppable from "./Droppable";
 import Grid from "@mui/material/Grid";
@@ -12,10 +12,6 @@ import findElement from "../utils/finElement.js";
 import updateElement from "../utils/updateElement.js";
 import deleteElement from "../utils/deleteElements.js";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  getDataLocalStorage,
-  saveDataLocalStorage,
-} from "../../../hooks/useLocalStorage.js";
 import { isSortable } from "@dnd-kit/react/sortable";
 import SortableElement from "./SortableElement.jsx";
 import reorderElements from "../utils/reorderElements.js";
@@ -24,36 +20,73 @@ import ColumnElement from "./ColumnElement.jsx";
 import ColumnsElement from "./ColumnsElement.jsx";
 import ProductSearch from "../../../common/components/ProductSearch.jsx";
 import ProductsTableDesign from "./ProductsTableDesign.jsx";
+import { getPageById, updatePage } from "../../../../server/pages.js";
 
-const PAGE_DESIGNS = "page_designs";
+// const PAGE_DESIGNS = "page_designs";
 
 function PageDesigner() {
   const { id: pageId } = useParams();
   const navigate = useNavigate();
-  const [elements, setElements] = useState(() => {
-    const savedDesigns = getDataLocalStorage(PAGE_DESIGNS) || {};
-    return savedDesigns[pageId] || [];
-  });
+  const [elements, setElements] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
   const [selectedElementId, setSelectedElementId] = useState(null);
 
   const selectedElement = findElement(elements, selectedElementId);
 
-  function handleSaveDesign() {
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPage() {
+      setIsLoading(true);
+      setLoadError("");
+
+      try {
+        const page = await getPageById(pageId);
+
+        if (!cancelled) {
+          setElements(page.elements || []);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Failed to load page:", error);
+          setLoadError("بارگذاری صفحه ناموفق بود.");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    function loadError() {
+      setLoadError("شناسه صفحه مشخص نیست.");
+      setIsLoading(false);
+    }
+
+    if (pageId) {
+      loadPage();
+    } else {
+      loadError();
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pageId]);
+
+  async function handleSaveDesign() {
     if (!pageId) return;
 
-    const savedDesigns = getDataLocalStorage(PAGE_DESIGNS) || {};
+    try {
+      await updatePage(pageId, { elements, status: "published" });
 
-    const updatedDesigns = {
-      ...savedDesigns,
-      [pageId]: elements,
-    };
-    console.log("savedDesigns", savedDesigns);
-    console.log("elements", elements);
-    console.log("updatedDesigns", updatedDesigns);
-
-    saveDataLocalStorage(PAGE_DESIGNS, updatedDesigns);
-
-    navigate("/managment-menu");
+      navigate("/managment-menu");
+    } catch (error) {
+      console.error("Failed to save design:", error);
+      alert("ذخیره طراحی ناموفق بود.");
+    }
   }
 
   function handlePropChange(propName, value) {
@@ -277,6 +310,14 @@ function PageDesigner() {
         {/* {element.type === "productCount" && <p>تعداد محصولات</p>} */}
       </div>
     );
+  }
+
+  if (isLoading) {
+    return <div>در حال بارگذاری صفحه...</div>;
+  }
+
+  if (loadError) {
+    return <div>{loadError}</div>;
   }
 
   return (

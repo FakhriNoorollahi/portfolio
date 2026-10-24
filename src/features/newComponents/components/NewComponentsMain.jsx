@@ -1,74 +1,69 @@
-import { useParams } from "react-router-dom";
-import { getDataLocalStorage } from "../../../hooks/useLocalStorage";
-import { PAGE_DESIGNS } from "../../../constants/constants";
 import TypographyElement from "../../design-pages/components/TypographyElement.jsx";
 import ImageElement from "../../design-pages/components/ImageElement.jsx";
 import StackElement from "../../design-pages/components/stackElement.jsx";
-import { useManageMenu } from "../../../context/mangeMenu/useManageMenu.js";
 import ColumnsElement from "../../design-pages/components/ColumnsElement.jsx";
 import ProductSearch from "../../../common/components/ProductSearch.jsx";
 import ProductsTableDesign from "../../design-pages/components/ProductsTableDesign.jsx";
+import ColumnElement from "../../design-pages/components/ColumnElement.jsx";
 
-function NewComponentsMain() {
-  const { dynamicUrl } = useParams();
-
-  const savedDesigns = getDataLocalStorage(PAGE_DESIGNS) || {};
-  const { webPages } = useManageMenu();
-
-  const currentPage = webPages.find(
-    (page) => page?.link?.toLowerCase() === dynamicUrl.toLowerCase(),
-  );
-
-  const elements = currentPage ? savedDesigns[currentPage.id] || [] : [];
-
+function NewComponentsMain({ elements = [] }) {
   console.log(elements);
-
   function renderElement(element) {
-    console.log(element);
+    if (!element?.id || !element?.type) return null;
 
-    return (
-      <div key={element.id} style={{ marginBottom: "16px" }}>
-        {element.type === "typography" && (
-          <TypographyElement text={element.props?.text || ""} />
-        )}
+    const children = Array.isArray(element.children) ? element.children : [];
 
-        {element.type === "image" && (
-          <ImageElement
-            src={element.props?.src || ""}
-            alt={element.props?.alt || ""}
-          />
-        )}
-
-        {element.type === "stack" && (
-          <StackElement>
-            {(element.children || []).map(renderElement)}
+    switch (element.type) {
+      case "stack":
+        return (
+          <StackElement key={element.id}>
+            {children.map(renderElement)}
           </StackElement>
-        )}
+        );
 
-        {element.type === "columns" && (
-          <ColumnsElement gap={16}>
-            {(element.children || []).map((elm) =>
-              (elm.children || []).map(renderElement),
-            )}
+      case "typography":
+        return (
+          <TypographyElement
+            key={element.id}
+            text={element.props?.text || "New heading"}
+          />
+        );
+
+      case "columns":
+        return (
+          <ColumnsElement key={element.id} gap={element.props?.gap ?? 16}>
+            {children.map(renderElement)}
           </ColumnsElement>
-        )}
+        );
 
-        {element.type === "productSearch" && <ProductSearch mode="designer" />}
+      case "column":
+        return (
+          <ColumnElement key={element.id} label={element.props?.label}>
+            {children.map(renderElement)}
+          </ColumnElement>
+        );
 
-        {element.type === "productsTable" && <ProductsTableDesign />}
-      </div>
-    );
+      case "image":
+        return (
+          <ImageElement
+            key={element.id}
+            src={element.props?.src || ""}
+            alt={element.props?.alt || "Image"}
+          />
+        );
+
+      case "productSearch":
+        return <ProductSearch key={element.id} mode="designer" />;
+
+      case "productsTable":
+        return <ProductsTableDesign key={element.id} />;
+
+      default:
+        return null;
+    }
   }
 
-  return (
-    <div>
-      {elements.length > 0 ? (
-        elements.map(renderElement)
-      ) : (
-        <p>طراحی ذخیره‌شده‌ای برای این کامپوننت وجود ندارد.</p>
-      )}
-    </div>
-  );
+  return <>{elements.map(renderElement)}</>;
 }
 
 export default NewComponentsMain;

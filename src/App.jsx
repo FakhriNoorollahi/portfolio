@@ -75,7 +75,7 @@ function App() {
                 </Route>
               </Route>
               <Route element={<ProtectedRoute type="protected" />}>
-                <Route path=":dynamicUrl" element={<ProductsLayout />}>
+                <Route path=":slug" element={<ProductsLayout />}>
                   <Route
                     index
                     element={

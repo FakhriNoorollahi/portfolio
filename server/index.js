@@ -1,0 +1,287 @@
+import express from "express";
+import { initializeDatabase } from "./database.js";
+import cors from "cors";
+import { createServer as createViteServer } from "vite";
+import { renderToPipeableStream } from "react-dom/server";
+import React from "react";
+import { PassThrough } from "node:stream";
+
+const app = express();
+const PORT = 3000;
+
+app.use(cors());
+app.use(express.json());
+
+async function startServer() {
+  try {
+    const db = await initializeDatabase();
+
+    const vite = await createViteServer({
+      configFile: "vite.config.js",
+      server: {
+        middlewareMode: true,
+      },
+      appType: "custom",
+    });
+
+    app.use(vite.middlewares);
+
+    app.post("/api/pages", async (req, res) => {
+      try {
+        const {
+          id,
+          title,
+          elements = [],
+          link,
+          isActive,
+          status = "draft",
+        } = req.body;
+
+        if (!id || !title.trim()) {
+          return res.status(400).json({
+            error: "شناسه و عنوان صفحه الزامی هستند.",
+          });
+        }
+
+        const slug = String(title).trim().toLowerCase().replace(/\s+/g, "-");
+
+        await db.run(
+          `INSERT INTO pages (id, slug, title, elements, link, isActive, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          String(id),
+          `${slug}-${id}`,
+          title.trim(),
+          JSON.stringify(elements),
+          link,
+          isActive,
+          status,
+        );
+
+        return res.status(201).json({
+          id: String(id),
+          slug: `${slug}-${id}`,
+          title: title.trim(),
+          elements,
+          link,
+          isActive,
+          status,
+        });
+      } catch (error) {
+        console.error("Failed to create page:", error);
+
+        if (error.code === "SQLITE_CONSTRAINT") {
+          return res.status(409).json({
+            error: "شناسه یا آدرس این صفحه قبلاً ثبت شده است.",
+          });
+        }
+
+        return res.status(500).json({
+          error: "خطا در ایجاد صفحه.",
+        });
+      }
+    });
+
+    app.get("/api/pages/:id", async (req, res) => {
+      try {
+        const page = await db.get(
+          `SELECT id, slug, title, elements, link, isActive, status, created_at, updated_at
+       FROM pages
+       WHERE id = ?`,
+          String(req.params.id),
+        );
+
+        if (!page) {
+          return res.status(404).json({
+            error: "صفحه پیدا نشد.",
+          });
+        }
+
+        return res.json({
+          ...page,
+          elements: JSON.parse(page.elements),
+        });
+      } catch (error) {
+        console.error("Failed to read page:", error);
+
+        return res.status(500).json({
+          error: "خطا در خواندن صفحه.",
+        });
+      }
+    });
+
+    app.put("/api/pages/:id", async (req, res) => {
+      try {
+        const { title, elements, status, isActive, link } = req.body;
+
+        const existingPage = await db.get(
+          "SELECT id FROM pages WHERE id = ?",
+          String(req.params.id),
+        );
+
+        if (!existingPage) {
+          return res.status(404).json({
+            error: "صفحه پیدا نشد.",
+          });
+        }
+
+        await db.run(
+          `UPDATE pages
+       SET title = COALESCE(?, title),
+           elements = COALESCE(?, elements),
+           status = COALESCE(?, status),
+            link = COALESCE(?, link),
+           isActive = COALESCE(?, isActive),
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
+          title ?? null,
+          elements === undefined ? null : JSON.stringify(elements),
+          status ?? null,
+          link ?? null,
+          isActive ?? null,
+          String(req.params.id),
+        );
+
+        return res.json({
+          message: "صفحه با موفقیت به‌روزرسانی شد.",
+          id: String(req.params.id),
+        });
+      } catch (error) {
+        console.error("Failed to update page:", error);
+
+        return res.status(500).json({
+          error: "خطا در به‌روزرسانی صفحه.",
+        });
+      }
+    });
+
+    app.get("/api/public-pages/:slug", async (req, res) => {
+      try {
+        const page = await db.get(
+          `SELECT id, slug, title, elements, link, isActive, status
+           FROM pages
+           WHERE slug = ? AND status = 'published'`,
+          req.params.slug,
+        );
+
+        if (!page) {
+          return res.status(404).json({
+            error: "صفحه منتشرشده پیدا نشد.",
+          });
+        }
+
+        return res.json({
+          ...page,
+          elements: JSON.parse(page.elements),
+        });
+      } catch (error) {
+        console.error("Failed to read public page:", error);
+
+        return res.status(500).json({
+          error: "خطا در دریافت صفحه.",
+        });
+      }
+    });
+
+    app.get("/pages/:slug", async (req, res, next) => {
+      try {
+        const page = await db.get(
+          `SELECT id, slug, title, elements
+       FROM pages
+       WHERE slug = ? AND status = 'published'`,
+          req.params.slug,
+        );
+
+        console.log("page",page);
+
+        if (!page) {
+          return res.status(404).send("صفحه منتشرشده پیدا نشد.");
+        }
+
+        const { default: NewComponentsMain } = await vite.ssrLoadModule(
+          "/src/features/NewComponents/components/NewComponentsMain.jsx",
+        );
+
+        const elements = JSON.parse(page.elements);
+        console.log("SSR page:", page.title, page.slug);
+        console.log("SSR elements:", JSON.stringify(elements, null, 2));
+
+        const body = new PassThrough();
+
+        body.on("error", (error) => {
+          console.error("SSR response stream error:", error);
+          res.destroy(error);
+        });
+
+        body.on("end", () => {
+          if (!res.writableEnded) {
+            res.end("</div></body></html>");
+          }
+        });
+
+        let stream;
+
+        stream = renderToPipeableStream(
+          React.createElement(NewComponentsMain, { elements }),
+          {
+            onShellReady() {
+              res.statusCode = 200;
+              res.setHeader("Content-Type", "text/html; charset=utf-8");
+
+              res.write(`<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${escapeHtml(page.title)}</title>
+</head>
+<body>
+  <div id="root">`);
+
+              body.pipe(res, { end: false });
+              stream.pipe(body);
+            },
+
+            onShellError(error) {
+              console.error("SSR shell error:", error);
+
+              if (!res.headersSent) {
+                res.status(500).send("خطا در رندر صفحه.");
+              } else {
+                res.destroy(error);
+              }
+            },
+
+            onError(error) {
+              console.error("SSR render error:", error);
+            },
+          },
+        );
+      } catch (error) {
+        next(error);
+      }
+    });
+
+    function escapeHtml(value = "") {
+      return String(value).replace(
+        /[&<>"']/g,
+        (char) =>
+          ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;",
+          })[char],
+      );
+    }
+
+    app.listen(PORT, () => {
+      console.log(`Server running at http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    // process.exitCode = 1;
+  }
+}
+
+startServer();

@@ -24,7 +24,7 @@ function ManagmentMenuMain() {
   const [isOpen, setIsOpen] = useState(false);
   const { webPages, components, addresses } = useManageMenu();
 
-  const allItems = [...webPages, ...components, ...addresses];
+  const allItems = [...components, ...webPages, ...addresses];
   console.log(allItems);
 
   return (
