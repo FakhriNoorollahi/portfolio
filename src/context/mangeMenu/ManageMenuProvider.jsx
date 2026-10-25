@@ -48,14 +48,14 @@ const addressesItems = [
     type: ADDRESSES,
     title: "google",
     isActive: true,
-    link: "google.com",
+    link: "google",
   },
   {
     id: 12012361475,
     type: ADDRESSES,
     title: "figma",
     isActive: true,
-    link: "figma.com",
+    link: "figma",
   },
 ];
 
@@ -125,6 +125,90 @@ function ManageMenuProvider({ children }) {
     saveDataLocalStorage(ADDRESSES, addresses);
   }, [addresses]);
 
+  useEffect(() => {
+    async function loadMenuItems() {
+      try {
+        const response = await fetch("http://localhost:3000/api/menu-items");
+
+        if (!response.ok) {
+          throw new Error("دریافت آیتم‌های منو ناموفق بود.");
+        }
+
+        const items = await response.json();
+
+        if (items.length === 0) return;
+
+        setComponents(
+          items
+            .filter((item) => item.type === COMPONENTS)
+            .map((item) => ({
+              ...item,
+              isActive: Boolean(item.isActive),
+            })),
+        );
+
+        setAddresses(
+          items
+            .filter((item) => item.type === ADDRESSES)
+            .map((item) => ({
+              ...item,
+              isActive: Boolean(item.isActive),
+            })),
+        );
+      } catch (error) {
+        console.error("خطا در دریافت منو از سرور:", error);
+      }
+    }
+
+    loadMenuItems();
+  }, []);
+
+  useEffect(() => {
+    async function initializeMenuItems() {
+      try {
+        const response = await fetch("http://localhost:3000/api/menu-items");
+
+        if (!response.ok) {
+          throw new Error("دریافت آیتم‌های منو ناموفق بود.");
+        }
+
+        const existingItems = await response.json();
+
+        if (existingItems.length > 0) return;
+
+        const initialItems = [...componentsItems, ...addressesItems].map(
+          (item, index) => ({
+            id: String(item.id),
+            type: item.type,
+            title: item.title,
+            link: item.link ?? "",
+            isActive: Boolean(item.isActive),
+            sort_order: index,
+          }),
+        );
+
+        const saveResponse = await fetch(
+          "http://localhost:3000/api/menu-items",
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ items: initialItems }),
+          },
+        );
+
+        if (!saveResponse.ok) {
+          throw new Error("ذخیرهٔ آیتم‌های اولیه ناموفق بود.");
+        }
+      } catch (error) {
+        console.error("خطا در مقداردهی اولیه منو:", error);
+      }
+    }
+
+    initializeMenuItems();
+  }, []);
+
   const saveWebPageLocalStorage = (updatedPages) => {
     const ids = updatedPages.map((item) => item.id);
     setWebPages(updatedPages);
@@ -134,22 +218,44 @@ function ManageMenuProvider({ children }) {
     setMenus(newMenus);
   };
 
-  const saveComponentsLocalStorage = (updatedComponents) => {
+  const saveComponentsLocalStorage = async (updatedComponents) => {
+    await saveMenuItemsToServer(updatedComponents);
+
     setComponents(updatedComponents);
+    saveDataLocalStorage(COMPONENTS, updatedComponents);
   };
 
-  const saveAddressesLocalStorage = (updatedAddresses) => {
+  const saveAddressesLocalStorage = async (updatedAddresses) => {
+    await saveMenuItemsToServer(updatedAddresses);
+
     setAddresses(updatedAddresses);
+    saveDataLocalStorage(ADDRESSES, updatedAddresses);
   };
 
   const getMenus = (type) => {
     if (type === COMPONENTS) {
       return components;
-    } else if (type === WEB_PAGES) {
-      return webPages;
     } else if (type === ADDRESSES) {
       return addresses;
+    } else if (type === WEB_PAGES) {
+      return webPages;
     }
+  };
+
+  const saveMenuItemsToServer = async (items) => {
+    const response = await fetch("http://localhost:3000/api/menu-items", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ items }),
+    });
+
+    if (!response.ok) {
+      throw new Error("ذخیره آیتم‌های منو در سرور ناموفق بود.");
+    }
+
+    return response.json();
   };
 
   return (

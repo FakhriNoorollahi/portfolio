@@ -29,6 +29,18 @@ export async function initializeDatabase() {
     )
   `);
 
+  await db.exec(`
+  CREATE TABLE IF NOT EXISTS menu_items (
+    id TEXT PRIMARY KEY,
+    type TEXT NOT NULL,
+    title TEXT NOT NULL,
+    link TEXT NOT NULL DEFAULT '',
+    isActive INTEGER NOT NULL DEFAULT 1
+      CHECK (isActive IN (0, 1)),
+    sort_order INTEGER NOT NULL DEFAULT 0
+  )
+`);
+
   const columns = await db.all("PRAGMA table_info(pages)");
 
   if (!columns.some((column) => column.name === "title")) {

@@ -185,17 +185,67 @@ async function startServer() {
     app.get("/pages/:slug", async (req, res, next) => {
       try {
         const page = await db.get(
-          `SELECT id, slug, title, elements
-       FROM pages
-       WHERE slug = ? AND status = 'published'`,
+          `SELECT id, slug, title, elements, link, isActive
+   FROM pages
+   WHERE slug = ? AND status = 'published'`,
           req.params.slug,
         );
 
-        console.log("page",page);
+        console.log("page", page);
 
         if (!page) {
           return res.status(404).send("صفحه منتشرشده پیدا نشد.");
         }
+
+        const menuRows = await db.all(`
+  SELECT id, type, title, link, isActive, sort_order
+  FROM menu_items
+  WHERE isActive = 1
+  ORDER BY sort_order ASC
+`);
+        const menuItems = menuRows.map((item) => {
+          const link = item.link?.trim() || "/";
+
+          const href = /^https?:\/\//i.test(link)
+            ? link
+            : `/${link.replace(/^\/+/, "")}`;
+
+          return {
+            ...item,
+            href,
+          };
+        });
+
+        const publicPages = await db.all(`
+  SELECT id, slug, title, link, isActive
+  FROM pages
+  WHERE status = 'published' AND isActive = 1
+  ORDER BY created_at DESC
+`);
+
+        const pageMenuItems = publicPages.map((item) => ({
+          id: item.id,
+          type: "WEB_PAGES",
+          title: item.title,
+          href: `/pages/${item.slug}`,
+          sort_order: 1000,
+        }));
+
+        const allMenuItems = [...menuItems, ...pageMenuItems].sort(
+          (a, b) => a.sort_order - b.sort_order,
+        );
+
+        const { default: theme } = await vite.ssrLoadModule(
+          "/src/theme/index.js",
+        );
+
+        const { ThemeProvider } = await vite.ssrLoadModule(
+          "@mui/material/styles",
+        );
+
+        const { default: ProductsLayout } = await vite.ssrLoadModule(
+          "/src/layouts/ProductsLayout.jsx",
+        );
 
         const { default: NewComponentsMain } = await vite.ssrLoadModule(
           "/src/features/NewComponents/components/NewComponentsMain.jsx",
@@ -221,7 +271,16 @@ async function startServer() {
         let stream;
 
         stream = renderToPipeableStream(
-          React.createElement(NewComponentsMain, { elements }),
+          React.createElement(
+            ThemeProvider,
+            { theme },
+            React.createElement(ProductsLayout, {
+              ssrMenuItems: allMenuItems,
+              children: React.createElement(NewComponentsMain, {
+                elements,
+              }),
+            }),
+          ),
           {
             onShellReady() {
               res.statusCode = 200;
@@ -256,6 +315,94 @@ async function startServer() {
             },
           },
         );
+      } catch (error) {
+        next(error);
+      }
+    });
+
+    app.get("/api/public-pages", async (req, res) => {
+      try {
+        const pages = await db.all(
+          `SELECT id, slug, title, link, isActive
+       FROM pages
+       WHERE status = 'published'
+       ORDER BY created_at DESC`,
+        );
+
+        return res.json(pages);
+      } catch (error) {
+        console.error("Failed to list public pages:", error);
+
+        return res.status(500).json({
+          error: "خطا در دریافت صفحات منتشرشده.",
+        });
+      }
+    });
+
+    app.get("/api/menu-items", async (req, res, next) => {
+      try {
+        const items = await db.all(`
+      SELECT id, type, title, link, isActive, sort_order
+      FROM menu_items
+      ORDER BY sort_order ASC
+    `);
+
+        res.json(items);
+      } catch (error) {
+        next(error);
+      }
+    });
+
+    app.put("/api/menu-items", async (req, res, next) => {
+      try {
+        const { items } = req.body;
+
+        if (!Array.isArray(items)) {
+          return res.status(400).json({
+            message: "items باید آرایه باشد.",
+          });
+        }
+
+        await db.exec("BEGIN");
+
+        try {
+          for (let index = 0; index < items.length; index++) {
+            const item = items[index];
+
+            if (
+              item.id == null ||
+              !item.type ||
+              typeof item.title !== "string"
+            ) {
+              throw new Error("اطلاعات یکی از آیتم‌های منو معتبر نیست.");
+            }
+
+            await db.run(
+              `INSERT INTO menu_items
+            (id, type, title, link, isActive, sort_order)
+           VALUES (?, ?, ?, ?, ?, ?)
+           ON CONFLICT(id) DO UPDATE SET
+            type = excluded.type,
+            title = excluded.title,
+            link = excluded.link,
+            isActive = excluded.isActive,
+            sort_order = excluded.sort_order`,
+              String(item.id),
+              item.type,
+              item.title,
+              item.link ?? "",
+              item.isActive ? 1 : 0,
+              item.sort_order ?? index,
+            );
+          }
+
+          await db.exec("COMMIT");
+        } catch (error) {
+          await db.exec("ROLLBACK");
+          throw error;
+        }
+
+        res.json({ message: "آیتم‌های منو ذخیره شدند." });
       } catch (error) {
         next(error);
       }

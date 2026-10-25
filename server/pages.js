@@ -16,3 +16,8 @@ export async function updatePage(id, data) {
   const response = await axios.put(`${api}/pages/${id}`, data);
   return response.data;
 }
+
+export async function getAllPages() {
+  const response = await axios.get(`${api}/public-pages`);
+  return response.data;
+}

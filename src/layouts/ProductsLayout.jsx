@@ -1,8 +1,11 @@
 import { Box } from "@mui/material";
 import { Outlet } from "react-router-dom";
 import TopBar from "../features/layout/TopBar";
+import TopBarSSR from "../features/layout/TopBarSSR";
 
-function ProductsLayout() {
+function ProductsLayout({ children, ssrMenuItems }) {
+  const isSSR = Array.isArray(ssrMenuItems);
+
   return (
     <Box
       sx={{
@@ -12,8 +15,9 @@ function ProductsLayout() {
         py: "50px",
       }}
     >
-      <TopBar />
-      <Outlet />
+      {isSSR ? <TopBarSSR menuItems={ssrMenuItems} /> : <TopBar />}
+
+      {children ?? <Outlet />}
     </Box>
   );
 }

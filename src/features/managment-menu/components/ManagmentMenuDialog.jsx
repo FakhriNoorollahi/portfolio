@@ -13,6 +13,7 @@ import AppDialog from "../../../ui/AppDialog";
 import { useState } from "react";
 import { ADDRESSES, COMPONENTS, WEB_PAGES } from "../../../constants/constants";
 import { useManageMenu } from "../../../context/mangeMenu/useManageMenu";
+import { updatePage } from "../../../../server/pages";
 
 const TYPES = [COMPONENTS, WEB_PAGES, ADDRESSES];
 
@@ -51,26 +52,67 @@ function ManagmentMenuDialog({ open, handleClose }) {
     setIsActive(current?.isActive ?? false);
   };
 
-  const handleDialogConfirm = () => {
-    const newItems = subItems.map((item) => {
-      return item.id === selectedItem
-        ? {
-            ...item,
-            title: name,
-            isActive,
-            link,
-          }
-        : item;
-    });
+  // const handleDialogConfirm = () => {
+  //   const newItems = subItems.map((item) => {
+  //     return item.id === selectedItem
+  //       ? {
+  //           ...item,
+  //           title: name,
+  //           isActive,
+  //           link,
+  //         }
+  //       : item;
+  //   });
 
-    if (type === COMPONENTS) {
-      saveComponentsLocalStorage(newItems);
-    } else if (type === ADDRESSES) {
-      saveAddressesLocalStorage(newItems);
-    } else if (type === WEB_PAGES) {
-      saveWebPageLocalStorage(newItems);
+  //   if (type === COMPONENTS) {
+  //     saveComponentsLocalStorage(newItems);
+  //   } else if (type === ADDRESSES) {
+  //     saveAddressesLocalStorage(newItems);
+  //   } else if (type === WEB_PAGES) {
+  //     saveWebPageLocalStorage(newItems);
+  //   }
+  //   handleClose();
+  // };
+
+  const handleDialogConfirm = async () => {
+    const selected = subItems.find(
+      (item) => String(item.id) === String(selectedItem),
+    );
+
+    if (!selected) return;
+
+    const updatedItem = {
+      ...selected,
+      title: name,
+      isActive,
+      link,
+    };
+
+    try {
+      if (type === WEB_PAGES) {
+        await updatePage(selected.id, {
+          title: name,
+          isActive: isActive ? 1 : 0,
+          link,
+        });
+      }
+
+      const newItems = subItems.map((item) =>
+        String(item.id) === String(selectedItem) ? updatedItem : item,
+      );
+
+      if (type === COMPONENTS) {
+        saveComponentsLocalStorage(newItems);
+      } else if (type === ADDRESSES) {
+        saveAddressesLocalStorage(newItems);
+      } else if (type === WEB_PAGES) {
+        saveWebPageLocalStorage(newItems);
+      }
+
+      handleClose();
+    } catch (error) {
+      console.error("خطا در ذخیره تنظیمات منو:", error);
     }
-    handleClose();
   };
 
   return (
