@@ -1,8 +1,11 @@
 import { useProducts } from "../../context/products/useProducts";
 import usePagination from "../../hooks/usePagination";
 import ProductsTableView from "../../common/components/ProductsTableView";
+import { useNavigate } from "react-router-dom";
 
 function ProductsTable() {
+  const navigate = useNavigate();
+
   const {
     searchInput,
     isLoading,
@@ -47,6 +50,8 @@ function ProductsTable() {
       onRowsPerPageChange={(event) => {
         changeLimit(Number(event.target.value));
       }}
+      onEdit={(id) => navigate(`/products/edit/${id}`)}
+      onDetails={(id) => navigate(`/products/${id}`)}
     />
   );
 

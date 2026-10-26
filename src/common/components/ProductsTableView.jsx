@@ -12,7 +12,6 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
 import AppButtonIcon from "../../ui/AppButtonIcon";
 import EditIcon from "@mui/icons-material/Edit";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -48,8 +47,11 @@ function ProductsTableView({
   total,
   onPageChange,
   onRowsPerPageChange,
+  onEdit,
+  onDetails,
 }) {
-  const navigate = useNavigate();
+  console.log(onEdit);
+  console.log(onDetails);
 
   return (
     <Stack spacing={3}>
@@ -89,7 +91,7 @@ function ProductsTableView({
                   <TableCell>
                     <AppButtonIcon
                       color="secondary"
-                      handler={() => navigate(`/products/edit/${product.id}`)}
+                      handler={() => onEdit(product.id)}
                     >
                       <EditIcon sx={{ color: "primary.main" }} />
                     </AppButtonIcon>
@@ -98,7 +100,7 @@ function ProductsTableView({
                   <TableCell>
                     <AppButtonIcon
                       color="secondary"
-                      handler={() => navigate(`/products/${product.id}`)}
+                      handler={() => onDetails(product.id)}
                     >
                       <SettingsIcon sx={{ color: "primary.main" }} />
                     </AppButtonIcon>

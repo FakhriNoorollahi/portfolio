@@ -5,6 +5,8 @@ import ProductsTableView from "../../../common/components/ProductsTableView";
 function ProductsTableDesign() {
   const { products, isLoading, searchInput } = useDesignerProductData();
 
+  console.log("Table products:", products.length);
+
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -18,6 +20,7 @@ function ProductsTableDesign() {
   );
 
   return (
+    // <div>{visibleProducts.length}</div>
     <ProductsTableView
       products={visibleProducts}
       isLoading={isLoading}
@@ -30,6 +33,12 @@ function ProductsTableDesign() {
       onRowsPerPageChange={(event) => {
         setRowsPerPage(Number(event.target.value));
         setPage(0);
+      }}
+      onEdit={(id) => {
+        window.location.assign(`/products/edit/${id}`);
+      }}
+      onDetails={(id) => {
+        window.location.assign(`/products/${id}`);
       }}
     />
   );

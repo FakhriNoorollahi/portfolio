@@ -186,23 +186,21 @@ async function startServer() {
       try {
         const page = await db.get(
           `SELECT id, slug, title, elements, link, isActive
-   FROM pages
-   WHERE slug = ? AND status = 'published'`,
+               FROM pages
+              WHERE slug = ? AND status = 'published'`,
           req.params.slug,
         );
-
-        console.log("page", page);
 
         if (!page) {
           return res.status(404).send("صفحه منتشرشده پیدا نشد.");
         }
 
         const menuRows = await db.all(`
-  SELECT id, type, title, link, isActive, sort_order
-  FROM menu_items
-  WHERE isActive = 1
-  ORDER BY sort_order ASC
-`);
+                             SELECT id, type, title, link, isActive, sort_order
+                             FROM menu_items
+                             WHERE isActive = 1
+                             ORDER BY sort_order ASC
+                         `);
         const menuItems = menuRows.map((item) => {
           const link = item.link?.trim() || "/";
 
@@ -217,11 +215,11 @@ async function startServer() {
         });
 
         const publicPages = await db.all(`
-  SELECT id, slug, title, link, isActive
-  FROM pages
-  WHERE status = 'published' AND isActive = 1
-  ORDER BY created_at DESC
-`);
+                             SELECT id, slug, title, link, isActive
+                             FROM pages
+                             WHERE status = 'published' AND isActive = 1
+                             ORDER BY created_at DESC
+                          `);
 
         const pageMenuItems = publicPages.map((item) => ({
           id: item.id,
@@ -233,6 +231,23 @@ async function startServer() {
 
         const allMenuItems = [...menuItems, ...pageMenuItems].sort(
           (a, b) => a.sort_order - b.sort_order,
+        );
+
+        const productsResponse = await fetch(
+          "https://dummyjson.com/products?limit=0",
+        );
+
+        if (!productsResponse.ok) {
+          throw new Error("Failed to fetch products from DummyJSON");
+        }
+
+        const productsData = await productsResponse.json();
+        const initialProducts = productsData.products;
+
+        const { StaticRouter } = await vite.ssrLoadModule("react-router");
+
+        const { default: ProductsSSRProvider } = await vite.ssrLoadModule(
+          "/src/context/ProductsSSR/ProductsSSRProvider.jsx",
         );
 
         const { default: theme } = await vite.ssrLoadModule(
@@ -251,9 +266,21 @@ async function startServer() {
           "/src/features/NewComponents/components/NewComponentsMain.jsx",
         );
 
+        const { DesignerProductsProvider } = await vite.ssrLoadModule(
+          "/src/context/DesignerProducts/DesignerProductsProvider.jsx",
+        );
+
         const elements = JSON.parse(page.elements);
-        console.log("SSR page:", page.title, page.slug);
-        console.log("SSR elements:", JSON.stringify(elements, null, 2));
+        const initialData = {
+          elements,
+          allMenuItems,
+          initialProducts,
+        };
+
+        const serializedInitialData = JSON.stringify(initialData).replace(
+          /</g,
+          "\\u003c",
+        );
 
         const body = new PassThrough();
 
@@ -264,7 +291,21 @@ async function startServer() {
 
         body.on("end", () => {
           if (!res.writableEnded) {
-            res.end("</div></body></html>");
+            res.end(`
+      </div>
+
+      <script id="initial-data" type="application/json">${serializedInitialData}</script>
+      <script type="module">
+  import RefreshRuntime from "/@react-refresh";
+  RefreshRuntime.injectIntoGlobalHook(window);
+  window.$RefreshReg$ = () => {};
+  window.$RefreshSig$ = () => (type) => type;
+  window.__vite_plugin_react_preamble_installed__ = true;
+</script>
+      <script type="module" src="/src/entry-client.jsx"></script>
+    </body>
+    </html>
+    `);
           }
         });
 
@@ -272,14 +313,26 @@ async function startServer() {
 
         stream = renderToPipeableStream(
           React.createElement(
-            ThemeProvider,
-            { theme },
-            React.createElement(ProductsLayout, {
-              ssrMenuItems: allMenuItems,
-              children: React.createElement(NewComponentsMain, {
-                elements,
-              }),
-            }),
+            StaticRouter,
+            { location: req.originalUrl },
+            React.createElement(
+              ThemeProvider,
+              { theme },
+              React.createElement(
+                ProductsSSRProvider,
+                { initialProducts },
+                React.createElement(
+                  DesignerProductsProvider,
+                  null,
+                  React.createElement(ProductsLayout, {
+                    ssrMenuItems: allMenuItems,
+                    children: React.createElement(NewComponentsMain, {
+                      elements,
+                    }),
+                  }),
+                ),
+              ),
+            ),
           ),
           {
             onShellReady() {
@@ -287,14 +340,14 @@ async function startServer() {
               res.setHeader("Content-Type", "text/html; charset=utf-8");
 
               res.write(`<!doctype html>
-<html lang="fa" dir="rtl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${escapeHtml(page.title)}</title>
-</head>
-<body>
-  <div id="root">`);
+                           <html lang="fa" dir="rtl">
+                             <head>
+                               <meta charset="UTF-8" />
+                               <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                               <title>${escapeHtml(page.title)}</title>
+                             </head>
+                             <body>
+                                 <div id="root">`);
 
               body.pipe(res, { end: false });
               stream.pipe(body);
