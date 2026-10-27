@@ -10,4 +10,5 @@ if (!rootElement || !dataElement) {
 
 const initialData = JSON.parse(dataElement.textContent);
 
+console.log("Hydration started", window.location.pathname);
 hydrateRoot(rootElement, <PublishedPageApp initialData={initialData} />);

@@ -2,9 +2,9 @@ import express from "express";
 import { initializeDatabase } from "./database.js";
 import cors from "cors";
 import { createServer as createViteServer } from "vite";
-import { renderToPipeableStream } from "react-dom/server";
 import React from "react";
-import { PassThrough } from "node:stream";
+import { getSSRMenuItems } from "./utils/getSSRMenuItems.js";
+import { renderSSRPage } from "./utils/renderSSRPage.js";
 
 const app = express();
 const PORT = 3000;
@@ -195,44 +195,6 @@ async function startServer() {
           return res.status(404).send("صفحه منتشرشده پیدا نشد.");
         }
 
-        const menuRows = await db.all(`
-                             SELECT id, type, title, link, isActive, sort_order
-                             FROM menu_items
-                             WHERE isActive = 1
-                             ORDER BY sort_order ASC
-                         `);
-        const menuItems = menuRows.map((item) => {
-          const link = item.link?.trim() || "/";
-
-          const href = /^https?:\/\//i.test(link)
-            ? link
-            : `/${link.replace(/^\/+/, "")}`;
-
-          return {
-            ...item,
-            href,
-          };
-        });
-
-        const publicPages = await db.all(`
-                             SELECT id, slug, title, link, isActive
-                             FROM pages
-                             WHERE status = 'published' AND isActive = 1
-                             ORDER BY created_at DESC
-                          `);
-
-        const pageMenuItems = publicPages.map((item) => ({
-          id: item.id,
-          type: "WEB_PAGES",
-          title: item.title,
-          href: `/pages/${item.slug}`,
-          sort_order: 1000,
-        }));
-
-        const allMenuItems = [...menuItems, ...pageMenuItems].sort(
-          (a, b) => a.sort_order - b.sort_order,
-        );
-
         const productsResponse = await fetch(
           "https://dummyjson.com/products?limit=0",
         );
@@ -271,103 +233,47 @@ async function startServer() {
         );
 
         const elements = JSON.parse(page.elements);
+
+        const allMenuItems = await getSSRMenuItems(db);
+
         const initialData = {
+          pageType: "published-page",
           elements,
           allMenuItems,
           initialProducts,
         };
 
-        const serializedInitialData = JSON.stringify(initialData).replace(
-          /</g,
-          "\\u003c",
-        );
-
-        const body = new PassThrough();
-
-        body.on("error", (error) => {
-          console.error("SSR response stream error:", error);
-          res.destroy(error);
-        });
-
-        body.on("end", () => {
-          if (!res.writableEnded) {
-            res.end(`
-      </div>
-
-      <script id="initial-data" type="application/json">${serializedInitialData}</script>
-      <script type="module">
-  import RefreshRuntime from "/@react-refresh";
-  RefreshRuntime.injectIntoGlobalHook(window);
-  window.$RefreshReg$ = () => {};
-  window.$RefreshSig$ = () => (type) => type;
-  window.__vite_plugin_react_preamble_installed__ = true;
-</script>
-      <script type="module" src="/src/entry-client.jsx"></script>
-    </body>
-    </html>
-    `);
-          }
-        });
-
-        let stream;
-
-        stream = renderToPipeableStream(
+        const html = React.createElement(
+          StaticRouter,
+          { location: req.originalUrl },
           React.createElement(
-            StaticRouter,
-            { location: req.originalUrl },
+            ThemeProvider,
+            { theme },
             React.createElement(
-              ThemeProvider,
-              { theme },
+              ProductsSSRProvider,
+              { initialProducts },
               React.createElement(
-                ProductsSSRProvider,
-                { initialProducts },
-                React.createElement(
-                  DesignerProductsProvider,
-                  null,
-                  React.createElement(ProductsLayout, {
-                    ssrMenuItems: allMenuItems,
-                    children: React.createElement(NewComponentsMain, {
-                      elements,
-                    }),
+                DesignerProductsProvider,
+                null,
+                React.createElement(ProductsLayout, {
+                  ssrMenuItems: allMenuItems,
+                  children: React.createElement(NewComponentsMain, {
+                    elements,
                   }),
-                ),
+                }),
               ),
             ),
           ),
-          {
-            onShellReady() {
-              res.statusCode = 200;
-              res.setHeader("Content-Type", "text/html; charset=utf-8");
-
-              res.write(`<!doctype html>
-                           <html lang="fa" dir="rtl">
-                             <head>
-                               <meta charset="UTF-8" />
-                               <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                               <title>${escapeHtml(page.title)}</title>
-                             </head>
-                             <body>
-                                 <div id="root">`);
-
-              body.pipe(res, { end: false });
-              stream.pipe(body);
-            },
-
-            onShellError(error) {
-              console.error("SSR shell error:", error);
-
-              if (!res.headersSent) {
-                res.status(500).send("خطا در رندر صفحه.");
-              } else {
-                res.destroy(error);
-              }
-            },
-
-            onError(error) {
-              console.error("SSR render error:", error);
-            },
-          },
         );
+
+        renderSSRPage({
+          req,
+          res,
+          html,
+          title: page.title,
+          initialData,
+          escapeHtml,
+        });
       } catch (error) {
         next(error);
       }
@@ -456,6 +362,81 @@ async function startServer() {
         }
 
         res.json({ message: "آیتم‌های منو ذخیره شدند." });
+      } catch (error) {
+        next(error);
+      }
+    });
+
+    app.get("/products/:id", async (req, res, next) => {
+      try {
+        const productResponse = await fetch(
+          `https://dummyjson.com/products/${req.params.id}`,
+        );
+
+        if (!productResponse.ok) {
+          throw new Error("Failed to fetch products from DummyJSON");
+        }
+
+        const productDataInfo = await productResponse.json();
+
+        const productData = {
+          title: productDataInfo.title,
+          description: productDataInfo.description,
+          category: productDataInfo.category,
+          price: productDataInfo.price,
+          rating: productDataInfo.rating,
+          brand: productDataInfo.brand,
+        };
+
+        const { StaticRouter } = await vite.ssrLoadModule("react-router");
+
+        const { default: theme } = await vite.ssrLoadModule(
+          "/src/theme/index.js",
+        );
+
+        const { ThemeProvider } = await vite.ssrLoadModule(
+          "@mui/material/styles",
+        );
+
+        const { default: ProductsLayout } = await vite.ssrLoadModule(
+          "/src/layouts/ProductsLayout.jsx",
+        );
+
+        const { default: ProductDetailSSR } = await vite.ssrLoadModule(
+          "/src/features/newComponents/components/ProductDetailSSR.jsx",
+        );
+
+        const allMenuItems = await getSSRMenuItems(db);
+
+        const initialData = {
+          pageType: "product-detail",
+          product: productData,
+          allMenuItems,
+        };
+
+        const html = React.createElement(
+          StaticRouter,
+          { location: req.originalUrl },
+          React.createElement(
+            ThemeProvider,
+            { theme },
+            React.createElement(ProductsLayout, {
+              ssrMenuItems: allMenuItems,
+              children: React.createElement(ProductDetailSSR, {
+                initialData,
+              }),
+            }),
+          ),
+        );
+
+        renderSSRPage({
+          req,
+          res,
+          html,
+          title: productData.title,
+          initialData,
+          escapeHtml,
+        });
       } catch (error) {
         next(error);
       }

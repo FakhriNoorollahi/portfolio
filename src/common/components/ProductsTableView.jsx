@@ -50,9 +50,6 @@ function ProductsTableView({
   onEdit,
   onDetails,
 }) {
-  console.log(onEdit);
-  console.log(onDetails);
-
   return (
     <Stack spacing={3}>
       {isLoading ? (
